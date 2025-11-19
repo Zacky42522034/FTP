@@ -76,34 +76,66 @@ class AuthController extends Controller
     }
 
     public function updateSettings(Request $request)
-{
-    $user = Auth::user();
+    {
+        $user = Auth::user();
 
-    // VALIDATION RULES
-    $rules = [
-        'username' => 'required|min:2',
-        'email' => 'required|email|unique:users,email,' . $user->id,
-        'password' => 'nullable|min:6|confirmed',
-    ];
+        // VALIDATION RULES
+        $rules = [
+            'username' => 'required|min:2',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|min:6|confirmed',
+        ];
 
-    $validated = $request->validate($rules);
+        $validated = $request->validate($rules);
 
-    // SIAPKAN DATA UNTUK UPDATE
-    $data = [
-        'username' => $validated['username'],
-        'email' => $validated['email'],
-    ];
+        // SIAPKAN DATA UNTUK UPDATE
+        $data = [
+            'username' => $validated['username'],
+            'email' => $validated['email'],
+        ];
 
-    // Jika password diisi → hash & masukkan ke $data
-    if (!empty($validated['password'])) {
-        $data['password'] = Hash::make($validated['password']);
+        // Jika password diisi → hash & masukkan ke $data
+        if (!empty($validated['password'])) {
+            $data['password'] = Hash::make($validated['password']);
+        }
+
+        // UPDATE MODEL
+        $user->update($data);
+
+        return back()->with('success', 'Pengaturan akun berhasil diperbarui.');
     }
 
-    // UPDATE MODEL
-    $user->update($data);
+    public function users()
+    {
+        $currentUserId = auth()->id(); // user yang sedang login
 
-    return back()->with('success', 'Pengaturan akun berhasil diperbarui.');
-}
+        $users = User::select('id', 'username', 'email')
+            ->where('id', '!=', $currentUserId) // exclude self
+            ->get();
+
+        $users = $users->map(function ($u) {
+            return [
+                'id' => $u->id,
+                'name' => $u->username, // supaya JS tetap pakai user.name
+                'email' => $u->email,
+                'avatar' => strtoupper(substr($u->username, 0, 2)),
+                'color' => collect([
+                    'bg-blue-500',
+                    'bg-pink-500',
+                    'bg-green-500',
+                    'bg-purple-500',
+                    'bg-yellow-500',
+                    'bg-red-500',
+                    'bg-indigo-500',
+                    'bg-teal-500'
+                ])->random(),
+            ];
+        });
+
+        return response()->json($users);
+    }
+
+
 
 
 }

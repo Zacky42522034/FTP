@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\File;
+use App\Models\User;
+use App\Models\SharedFile;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 
 class FileController extends Controller
@@ -231,6 +233,56 @@ class FileController extends Controller
 
         return round($bytes, $precision) . ' ' . $units[$pow];
     }
+
+    public function share(Request $request)
+    {
+        try {
+            // Validasi input
+            if (!$request->has('files') || !$request->has('to_email')) {
+                return response()->json(['error' => 'Input invalid'], 422);
+            }
+
+            $files = $request->input('files');
+            $toEmail = $request->input('to_email');
+            $fromUser = auth()->id();
+
+            if (!$files || count($files) === 0) {
+                return response()->json(['error' => 'Files empty'], 422);
+            }
+
+            foreach ($files as $file) {
+
+                // FIX UTAMA -> name wajib ada
+                $name = $file['name'] ?? null;
+                if (!$name) {
+                    return response()->json(['error' => 'File name missing'], 422);
+                }
+
+                $type = $name; // mengikuti permintaan: type = name
+                $size = $file['size'] ?? '0 MB';
+
+                SharedFile::create([
+                    'from_user' => $fromUser,
+                    'to_email' => $toEmail,
+                    'name' => $name,
+                    'type' => $type,
+                    'size' => $size,
+                    'status' => 'terkirim',
+                    'desc' => 'File ' . $name . ' dibagikan oleh '
+                        . auth()->user()->name
+                        . ' pada ' . now()->format('d M Y H:i'),
+                    'favorite' => 0,
+                ]);
+            }
+
+            return response()->json(['success' => true], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+
 
 
 

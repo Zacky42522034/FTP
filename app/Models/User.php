@@ -51,4 +51,15 @@ class User extends Authenticatable
         return $this->hasMany(File::class);
     }
 
+    public function sentFiles()
+    {
+        return $this->hasMany(SharedFile::class, 'from_user');
+    }
+
+    public function receivedFiles()
+    {
+        return $this->hasMany(SharedFile::class, 'to_email', 'email');
+    }
+
+
 }

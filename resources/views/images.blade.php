@@ -127,6 +127,56 @@
             object-fit: cover;
             border-radius: 8px;
         }
+
+        /* Modal Share Styles */
+        .fade-in {
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        .slide-down {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .selected-user {
+            background-color: #e0f2fe;
+            border-color: #0ea5e9;
+        }
+
+        /* Scrollbar lembut dan minimalis */
+        #filterDropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #filterDropdown::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.6);
+            border-radius: 3px;
+        }
+
+        #filterDropdown::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(107, 114, 128, 0.8);
+        }
     </style>
 </head>
 
@@ -296,9 +346,6 @@
                 </div>
 
                 <div class="flex items-center space-x-4">
-                    <!-- Search Bar -->
-                    
-
                     <!-- Quick Actions -->
                     <div class="flex space-x-2">
                         <button onclick="window.location.reload()"
@@ -573,11 +620,10 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
     <div id="settingsModal"
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden transition-opacity">
-
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 transform transition-transform flex flex-col">
-
             <!-- Header -->
             <div class="p-6 border-b border-gray-200 flex justify-between items-center">
                 <h3 class="text-xl font-bold text-gray-800">Pengaturan Akun</h3>
@@ -589,17 +635,16 @@
 
             <!-- Content -->
             <div class="p-6 flex flex-col space-y-6">
-                
                 <form id="settingsForm" class="flex flex-col space-y-6" action="/settings/update" method="POST">
-                            @csrf
+                    @csrf
                     <!-- Username -->
                     <div class="flex flex-col">
                         <label class="text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-user mr-2 text-gray-500"></i>Username
                         </label>
-                        <input type="text" id="username" name="username" value="{{ Auth::user()->username }}" class="w-full px-4 py-3 border border-gray-300 rounded-xl 
-                        focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
-                        <div id="usernameError" class="error-message"></div>
+                        <input type="text" id="username" name="username" value="{{ Auth::user()->username }}"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                        <div id="usernameError" class="error-message text-red-500 text-xs mt-1"></div>
                     </div>
 
                     <!-- Email -->
@@ -607,22 +652,21 @@
                         <label class="text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-envelope mr-2 text-gray-500"></i>Email
                         </label>
-                        <input type="email" id="email" name="email" value="{{ Auth::user()->email }}" class="w-full px-4 py-3 border border-gray-300 rounded-xl 
-                        focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
-                        <div id="emailError" class="error-message"></div>
+                        <input type="email" id="email" name="email" value="{{ Auth::user()->email }}"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                        <div id="emailError" class="error-message text-red-500 text-xs mt-1"></div>
                     </div>
 
                     <!-- Password Baru + Konfirmasi -->
                     <div class="flex flex-col space-y-6">
-
                         <!-- Password Baru -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 <i class="fas fa-lock mr-2 text-gray-500"></i>Password Baru
                             </label>
                             <div class="relative">
-                                <input type="password" id="password" name="password" class="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl 
-                                focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                <input type="password" id="password" name="password"
+                                    class="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     placeholder="Masukkan password baru">
                                 <button type="button" id="togglePassword"
                                     class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
@@ -630,7 +674,7 @@
                                 </button>
                             </div>
                             <div id="passwordStrength" class="password-strength mt-2"></div>
-                            <div id="passwordError" class="error-message"></div>
+                            <div id="passwordError" class="error-message text-red-500 text-xs mt-1"></div>
                         </div>
 
                         <!-- Konfirmasi Password -->
@@ -639,15 +683,15 @@
                                 <i class="fas fa-lock mr-2 text-gray-500"></i>Konfirmasi Password
                             </label>
                             <div class="relative">
-                                <input type="password" id="confirmPassword"  name="password_confirmation" class="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl 
-                                focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                <input type="password" id="confirmPassword" name="password_confirmation"
+                                    class="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     placeholder="Konfirmasi password baru">
                                 <button type="button" id="toggleConfirmPassword"
                                     class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
-                            <div id="confirmPasswordError" class="error-message"></div>
+                            <div id="confirmPasswordError" class="error-message text-red-500 text-xs mt-1"></div>
                         </div>
                     </div>
 
@@ -657,20 +701,107 @@
                             class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-xl font-medium">
                             Batal
                         </button>
-                        <button type="submit" 
+                        <button type="submit"
                             class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl font-medium flex items-center justify-center">
                             <i class="fas fa-save mr-2"></i>Simpan Perubahan
                         </button>
                     </div>
-
                 </form>
             </div>
+        </div>
+    </div>
 
+    <!-- Share Modal -->
+    <div id="shareModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden transition-opacity duration-300">
+        <div
+            class="modal-box bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 transform transition-all duration-300 slide-down">
+
+            <!-- HEADER -->
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">Bagikan File</h3>
+                    <p class="text-sm text-gray-500 mt-1">Pilih penerima untuk berbagi</p>
+                </div>
+                <button
+                    class="close-share-modal text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- BODY -->
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- KIRI: File + Search + Users -->
+                <div class="space-y-6">
+                    <!-- FILE INFO -->
+                    <div>
+                        <h4 class="font-medium text-gray-700 mb-2">File yang akan dibagikan:</h4>
+                        <div id="sharedFileInfo" class="bg-gray-50 p-3 rounded-lg flex items-center">
+                            <i class="fas fa-file text-blue-500 mr-3"></i>
+                            <span id="sharedFileName" class="font-medium">Nama File</span>
+                        </div>
+                    </div>
+
+                    <!-- SEARCH -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-search mr-2 text-gray-500"></i>Cari Penerima
+                        </label>
+                        <div class="relative">
+                            <input type="text"
+                                class="search-users w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                placeholder="Cari nama atau email...">
+                            <button type="button"
+                                class="clear-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 hidden">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- USER LIST -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-users mr-2 text-gray-500"></i>Pilih Penerima
+                        </label>
+                        <div class="border border-gray-300 rounded-xl max-h-64 overflow-y-auto">
+                            <div class="users-list divide-y divide-gray-200"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KANAN: Selected Users -->
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-user-check mr-2 text-gray-500"></i>
+                            Penerima Dipilih <span class="selected-count text-blue-500 ml-1">(0)</span>
+                        </label>
+                        <div
+                            class="selected-users flex flex-wrap gap-2 min-h-12 p-3 border border-gray-300 rounded-xl bg-gray-50">
+                            <p class="placeholder text-gray-500 text-sm py-2 px-3">Belum ada penerima dipilih</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER BUTTONS -->
+            <div class="px-6 pb-6 flex space-x-3">
+                <button type="button"
+                    class="cancel-share flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-xl font-medium transition-colors">
+                    Batal
+                </button>
+                <button type="button"
+                    class="share-button flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl font-medium flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled>
+                    <i class="fas fa-share-alt mr-2"></i>Bagikan
+                </button>
+            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Deklarasi variabel global
         let images = [];
         let filteredImages = [];
         let currentView = 'grid';
@@ -679,6 +810,12 @@
         let currentSort = { field: 'date', direction: 'desc' };
         let activeFilterType = 'all';
         let searchTerm = '';
+
+        // Variabel untuk fitur berbagi
+        let currentFileToShare = null;
+        let users = [];
+        let selectedUsers = [];
+        let filteredUsers = [];
 
         // Image file types configuration
         const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp', 'tiff'];
@@ -694,6 +831,8 @@
             tiff: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar' },
             default: { icon: 'file-image', color: 'text-gray-500 bg-gray-100', type: 'Gambar' },
         };
+
+        // ==================== FUNGSI UTAMA ====================
 
         // Ambil data file dari backend Laravel dan filter hanya gambar
         async function fetchImages() {
@@ -869,69 +1008,70 @@
                 imageCard.dataset.type = ext;
                 imageCard.dataset.name = image.name;
                 imageCard.innerHTML = `
-            <div class="flex justify-between items-start mb-4">
-                <div class="p-3 rounded-xl ${config.color} file-type-icon">
-                    <i class="fas fa-${config.icon} text-lg"></i>
-                </div>
-                <div class="relative dropdown">
-                    <button class="dropdown-toggle text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                        type="button"
-        onclick="event.stopPropagation()" toggleDropdown(this)">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
-                    <div class="dropdown-content bg-white rounded-xl shadow-lg border border-gray-200 py-2 w-48 hidden absolute right-0 z-10">
-                        <a href="javascript:void(0);" 
-                            onclick="previewImage('${image.name}')" 
-                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            <i class="fas fa-eye mr-2"></i> Preview
-                        </a>
-                        <a href="javascript:void(0);" 
-                            onclick="showFileDetails('${image.name}')" 
-                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            <i class="fas fa-info-circle mr-2"></i> Detail
-                        </a>
-                        <a onclick="event.stopPropagation()" href="/storage/uploads/${encodeURIComponent(image.name)}"
-                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            download>
-                            <i class="fas fa-download mr-2"></i> Unduh
-                        </a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            <i class="fas fa-share-alt mr-2"></i> Bagikan
-                        </a>
-                        <a href="javascript:void(0);" 
-                            onclick="event.stopPropagation(); confirmDelete('${encodeURIComponent(image.name)}')" 
-                            class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
-                            <i class="fas fa-trash-alt mr-2"></i> Hapus
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-xl ${config.color} file-type-icon">
+                            <i class="fas fa-${config.icon} text-lg"></i>
+                        </div>
+                        <div class="relative dropdown">
+                            <button class="dropdown-toggle text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                                onclick="event.stopPropagation(); toggleDropdown(this)">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <div class="dropdown-content bg-white rounded-xl shadow-lg border border-gray-200 py-2 w-48 hidden absolute right-0 z-10">
+                                <a href="javascript:void(0);" 
+                                    onclick="previewImage('${image.name}')" 
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-eye mr-2"></i> Preview
+                                </a>
+                                <a href="javascript:void(0);" 
+                                    onclick="showFileDetails('${image.name}')" 
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-info-circle mr-2"></i> Detail
+                                </a>
+                                <a onclick="event.stopPropagation()" href="/storage/uploads/${encodeURIComponent(image.name)}"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    download>
+                                    <i class="fas fa-download mr-2"></i> Unduh
+                                </a>
+                                <a href="javascript:void(0);" 
+                                    onclick="event.stopPropagation(); openShareModal('${image.name}')" 
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-share-alt mr-2"></i> Bagikan
+                                </a>
+                                <a href="javascript:void(0);" 
+                                    onclick="event.stopPropagation(); confirmDelete('${encodeURIComponent(image.name)}')" 
+                                    class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                    <i class="fas fa-trash-alt mr-2"></i> Hapus
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Image Preview -->
+                    <div class="mb-3 bg-gray-100 rounded-lg overflow-hidden">
+                        <img src="/storage/uploads/${encodeURIComponent(image.name)}" 
+                             alt="${image.name}"
+                             class="image-preview w-full h-32 object-cover cursor-pointer"
+                             onclick="previewImage('${image.name}')"
+                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzljYTNkYiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIFByZXZpZXc8L3RleHQ+PC9zdmc+'">
+                    </div>
+                    
+                    <h4 class="font-semibold text-gray-800 mb-2 truncate" title="${image.name}">
+                        ${image.name}
+                    </h4>
+                    <div class="flex justify-between items-center text-sm text-gray-500 mb-3">
+                        <span>${image.size || '-'}</span>
+                        <span>${uploadDate}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
+                            ${ext.toUpperCase()}
+                        </span>
+                        <a class="text-gray-400 hover:text-yellow-500 transition-colors favorite-btn">
+                            <i class="far fa-star"></i>
                         </a>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Image Preview -->
-            <div class="mb-3 bg-gray-100 rounded-lg overflow-hidden">
-                <img src="/storage/uploads/${encodeURIComponent(image.name)}" 
-                     alt="${image.name}"
-                     class="image-preview w-full h-32 object-cover cursor-pointer"
-                     onclick="previewImage('${image.name}')"
-                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzljYTNkYiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIFByZXZpZXc8L3RleHQ+PC9zdmc+'">
-            </div>
-            
-            <h4 class="font-semibold text-gray-800 mb-2 truncate" title="${image.name}">
-                ${image.name}
-            </h4>
-            <div class="flex justify-between items-center text-sm text-gray-500 mb-3">
-                <span>${image.size || '-'}</span>
-                <span>${uploadDate}</span>
-            </div>
-            <div class="flex justify-between items-center">
-                <span class="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
-                    ${ext.toUpperCase()}
-                </span>
-                <a class="text-gray-400 hover:text-yellow-500 transition-colors favorite-btn">
-                    <i class="far fa-star"></i>
-                </a>
-            </div>
-        `;
+                `;
 
                 gridView.appendChild(imageCard);
 
@@ -957,45 +1097,48 @@
                 tableRow.dataset.type = ext;
                 tableRow.dataset.name = image.name;
                 tableRow.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
-                    <div class="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden mr-3">
-                        <img src="/storage/uploads/${encodeURIComponent(image.name)}" 
-                             alt="${image.name}"
-                             class="w-full h-full object-cover"
-                             onerror="this.style.display='none'">
-                    </div>
-                    <div class="text-sm font-medium text-gray-900 truncate max-w-xs" title="${image.name}">
-                        ${image.name}
-                    </div>
-                </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                ${ext.toUpperCase()}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                ${image.size || '-'}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                ${uploadDate}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div class="flex justify-end space-x-2">
-                    <button onclick="previewImage('${image.name}')" class="text-blue-600 hover:text-blue-900 p-1 rounded">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button onclick="showFileDetails('${image.name}')" class="text-green-600 hover:text-green-900 p-1 rounded">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
-                    <a href="/storage/uploads/${encodeURIComponent(image.name)}" download class="text-purple-600 hover:text-purple-900 p-1 rounded">
-                        <i class="fas fa-download"></i>
-                    </a>
-                    <button onclick="confirmDelete('${encodeURIComponent(image.name)}')" class="text-red-600 hover:text-red-900 p-1 rounded">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-            </td>
-        `;
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden mr-3">
+                                <img src="/storage/uploads/${encodeURIComponent(image.name)}" 
+                                     alt="${image.name}"
+                                     class="w-full h-full object-cover"
+                                     onerror="this.style.display='none'">
+                            </div>
+                            <div class="text-sm font-medium text-gray-900 truncate max-w-xs" title="${image.name}">
+                                ${image.name}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${ext.toUpperCase()}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${image.size || '-'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${uploadDate}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex justify-end space-x-2">
+                            <button onclick="previewImage('${image.name}')" class="text-blue-600 hover:text-blue-900 p-1 rounded">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="showFileDetails('${image.name}')" class="text-green-600 hover:text-green-900 p-1 rounded">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                            <a href="/storage/uploads/${encodeURIComponent(image.name)}" download class="text-purple-600 hover:text-purple-900 p-1 rounded">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            <button onclick="event.stopPropagation(); openShareModal('${image.name}')" class="text-indigo-600 hover:text-indigo-900 p-1 rounded">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                            <button onclick="confirmDelete('${encodeURIComponent(image.name)}')" class="text-red-600 hover:text-red-900 p-1 rounded">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
 
                 fileTableBody.appendChild(tableRow);
             });
@@ -1127,6 +1270,277 @@
             });
         }
 
+        // ==================== FUNGSI BERBAGI FILE ====================
+
+        // Fungsi untuk membuka modal berbagi
+        function openShareModal(fileName) {
+            currentFileToShare = fileName;
+            const modal = document.getElementById('shareModal');
+            const fileNameElement = document.getElementById('sharedFileName');
+
+            fileNameElement.textContent = fileName;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            // Reset dan render ulang daftar pengguna
+            selectedUsers = [];
+            filteredUsers = [...users];
+            renderUsersList();
+            renderSelectedUsers();
+            updateShareButton();
+
+            setTimeout(() => {
+                const searchInput = document.querySelector('.search-users');
+                if (searchInput) searchInput.focus();
+            }, 300);
+        }
+
+        // Fungsi untuk menutup modal berbagi
+        function closeShareModal() {
+            const modal = document.getElementById('shareModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            resetShareForm();
+        }
+
+        // Fungsi untuk merender daftar pengguna
+        function renderUsersList() {
+            const usersList = document.querySelector('.users-list');
+            if (!usersList) return;
+
+            usersList.innerHTML = '';
+
+            if (filteredUsers.length === 0) {
+                usersList.innerHTML = `
+                    <div class="p-4 text-center text-gray-500">
+                        <i class="fas fa-user-slash text-2xl mb-2"></i>
+                        <p>Tidak ada pengguna</p>
+                    </div>`;
+                return;
+            }
+
+            filteredUsers.forEach(user => {
+                const isSelected = selectedUsers.some(u => u.id === user.id);
+
+                const div = document.createElement('div');
+                div.className = `
+                    p-3 cursor-pointer transition-all duration-200 
+                    ${isSelected ? 'selected-user bg-blue-50' : 'hover:bg-gray-50'}
+                `;
+
+                div.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 
+                            ${user.color || 'bg-blue-500'} 
+                            rounded-full flex items-center justify-center 
+                            text-white font-medium mr-3">
+                            ${user.avatar || user.name.substring(0, 2).toUpperCase()}
+                        </div>
+
+                        <div class="flex-1">
+                            <div class="font-medium">${user.name}</div>
+                            <div class="text-sm text-gray-500">${user.email}</div>
+                        </div>
+
+                        <div class="w-5 h-5 rounded-full border-2 
+                            ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300'} 
+                            flex items-center justify-center">
+                            ${isSelected ? '<i class="fas fa-check text-white text-xs"></i>' : ''}
+                        </div>
+                    </div>
+                `;
+
+                div.addEventListener('click', () => toggleUser(user));
+                usersList.appendChild(div);
+            });
+        }
+
+        // Fungsi untuk toggle pemilihan pengguna
+        function toggleUser(user) {
+            const index = selectedUsers.findIndex(u => u.id === user.id);
+            if (index === -1) {
+                selectedUsers.push(user);
+            } else {
+                selectedUsers.splice(index, 1);
+            }
+            renderUsersList();
+            renderSelectedUsers();
+            updateShareButton();
+        }
+
+        // Fungsi untuk merender pengguna yang dipilih
+        function renderSelectedUsers() {
+            const selectedUsersBox = document.querySelector('.selected-users');
+            const selectedCount = document.querySelector('.selected-count');
+
+            if (!selectedUsersBox || !selectedCount) return;
+
+            selectedUsersBox.innerHTML = '';
+            selectedCount.textContent = `(${selectedUsers.length})`;
+
+            if (selectedUsers.length === 0) {
+                selectedUsersBox.innerHTML = '<p class="placeholder text-gray-500 text-sm py-2 px-3">Belum ada penerima dipilih</p>';
+                return;
+            }
+
+            selectedUsers.forEach(user => {
+                const chip = document.createElement('div');
+                chip.className = 'bg-blue-100 text-blue-800 rounded-full py-1 px-3 text-sm flex items-center';
+                chip.innerHTML = `
+                    <span>${user.name}</span>
+                    <button class="ml-2 text-blue-600 hover:text-blue-800">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                `;
+                chip.querySelector('button').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleUser(user);
+                });
+                selectedUsersBox.appendChild(chip);
+            });
+        }
+
+        // Fungsi untuk update tombol berbagi
+        function updateShareButton() {
+            const shareButton = document.querySelector('.share-button');
+            if (shareButton) {
+                shareButton.disabled = selectedUsers.length === 0;
+            }
+        }
+
+        // Fungsi untuk reset form berbagi
+        function resetShareForm() {
+            selectedUsers = [];
+            filteredUsers = [...users];
+            const searchInput = document.querySelector('.search-users');
+            if (searchInput) searchInput.value = '';
+            const clearSearch = document.querySelector('.clear-search');
+            if (clearSearch) clearSearch.classList.add('hidden');
+            renderUsersList();
+            renderSelectedUsers();
+            updateShareButton();
+        }
+
+        // Fungsi untuk menangani proses berbagi
+        async function handleShare() {
+            if (selectedUsers.length === 0) {
+                Swal.fire('Peringatan', 'Pilih setidaknya satu penerima.', 'warning');
+                return;
+            }
+
+            if (!currentFileToShare) {
+                Swal.fire('Peringatan', 'Nama file tidak ditemukan.', 'warning');
+                return;
+            }
+
+            try {
+                const recipients = selectedUsers.map(u => u.email); // ambil email penerima
+                const recipientsString = recipients[0]; // untuk sementara ambil 1 dulu
+
+                const response = await fetch('/files/share', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        files: [
+                            {
+                                name: currentFileToShare,
+                                size: "0 MB" // bisa diubah sesuai data asli
+                            }
+                        ],
+                        to_email: recipientsString
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    Swal.fire('Error', data.error || 'Gagal membagikan file', 'error');
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: `File "${currentFileToShare}" telah dibagikan kepada ${recipientsString}`,
+                    icon: 'success'
+                }).then(() => {
+                    closeShareModal();
+                    fetchFiles();
+                });
+
+            } catch (error) {
+                console.error('Error sharing file:', error);
+                Swal.fire('Error', 'Gagal membagikan file', 'error');
+            }
+        }
+
+        // Inisialisasi event listeners untuk modal berbagi
+        function initializeShareModal() {
+            const closeShareBtn = document.querySelector('.close-share-modal');
+            const cancelShareBtn = document.querySelector('.cancel-share');
+            const shareBtn = document.querySelector('.share-button');
+            const searchInput = document.querySelector('.search-users');
+            const clearSearch = document.querySelector('.clear-search');
+
+            if (closeShareBtn) closeShareBtn.addEventListener('click', closeShareModal);
+            if (cancelShareBtn) cancelShareBtn.addEventListener('click', closeShareModal);
+            if (shareBtn) shareBtn.addEventListener('click', handleShare);
+
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    const term = searchInput.value.toLowerCase();
+                    if (clearSearch) clearSearch.classList.toggle('hidden', term.length === 0);
+                    filteredUsers = users.filter(user =>
+                        user.name.toLowerCase().includes(term) ||
+                        user.email.toLowerCase().includes(term)
+                    );
+                    renderUsersList();
+                });
+            }
+
+            if (clearSearch) {
+                clearSearch.addEventListener('click', () => {
+                    if (searchInput) searchInput.value = '';
+                    clearSearch.classList.add('hidden');
+                    filteredUsers = [...users];
+                    renderUsersList();
+                });
+            }
+
+            const shareModal = document.getElementById('shareModal');
+            if (shareModal) {
+                shareModal.addEventListener('click', (e) => {
+                    if (e.target === shareModal) closeShareModal();
+                });
+            }
+        }
+
+        // Ambil data users untuk fitur berbagi
+        async function fetchUsers() {
+            try {
+                const response = await fetch('/users');
+                if (!response.ok) throw new Error('Failed to fetch users');
+                users = await response.json();
+                filteredUsers = [...users];
+                renderUsersList();
+            } catch (error) {
+                console.error('Error memuat users:', error);
+                // Fallback data jika API tidak tersedia
+                users = [
+                    { id: 1, name: 'Ahmad Wijaya', email: 'ahmad@example.com', avatar: 'AW', color: 'bg-blue-500' },
+                    { id: 2, name: 'Sari Indah', email: 'sari@example.com', avatar: 'SI', color: 'bg-pink-500' },
+                    { id: 3, name: 'Budi Santoso', email: 'budi@example.com', avatar: 'BS', color: 'bg-green-500' },
+                    { id: 4, name: 'Dewi Lestari', email: 'dewi@example.com', avatar: 'DL', color: 'bg-purple-500' }
+                ];
+                filteredUsers = [...users];
+                renderUsersList();
+            }
+        }
+
+        // ==================== FUNGSI UTILITAS ====================
+
         // Image preview functionality
         function previewImage(filename) {
             const modal = document.getElementById('imageModal');
@@ -1189,56 +1603,60 @@
             const config = fileConfig[ext] || fileConfig.default;
 
             modalContent.innerHTML = `
-        <div class="flex items-start">
-            <div class="p-4 rounded-2xl ${config.color} mr-5 file-type-icon">
-                <i class="fas fa-${config.icon} text-3xl"></i>
-            </div>
-            <div class="flex-1">
-                <h4 class="text-xl font-bold text-gray-800 mb-2">${image.name}</h4>
+                <div class="flex items-start">
+                    <div class="p-4 rounded-2xl ${config.color} mr-5 file-type-icon">
+                        <i class="fas fa-${config.icon} text-3xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">${image.name}</h4>
 
-                <div class="grid grid-cols-2 gap-4 mt-4">
-                    <div>
-                        <p class="text-sm text-gray-500">Format</p>
-                        <p class="font-medium">${ext.toUpperCase()}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Ukuran</p>
-                        <p class="font-medium">${image.size}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Tanggal Upload</p>
-                        <p class="font-medium">${image.date}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Dimensi</p>
-                        <p class="font-medium">${image.dimensions || 'Tidak tersedia'}</p>
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <p class="text-sm text-gray-500">Format</p>
+                                <p class="font-medium">${ext.toUpperCase()}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Ukuran</p>
+                                <p class="font-medium">${image.size}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Tanggal Upload</p>
+                                <p class="font-medium">${image.date}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Dimensi</p>
+                                <p class="font-medium">${image.dimensions || 'Tidak tersedia'}</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <p class="text-sm text-gray-500 mb-2">Preview</p>
+                            <div class="bg-gray-100 rounded-lg p-4">
+                                <img src="/storage/uploads/${encodeURIComponent(image.name)}" 
+                                     alt="${image.name}"
+                                     class="max-w-full max-h-48 object-contain mx-auto rounded"
+                                     onerror="this.style.display='none'">
+                            </div>
+                        </div>
+
+                        <div class="mt-8 flex justify-end space-x-3">
+                            <button onclick="previewImage('${image.name}')"
+                                class="bg-blue-500 hover:bg-blue-600 text-white py-2.5 px-5 rounded-xl font-medium transition-colors duration-200 flex items-center">
+                                <i class="fas fa-eye mr-2"></i> Preview
+                            </button>
+                            <button onclick="openShareModal('${image.name}')"
+                                class="bg-indigo-500 hover:bg-indigo-600 text-white py-2.5 px-5 rounded-xl font-medium transition-colors duration-200 flex items-center">
+                                <i class="fas fa-share-alt mr-2"></i> Bagikan
+                            </button>
+                            <a 
+                                href="/download/${encodeURIComponent(image.name)}"
+                                class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-5 rounded-xl font-medium transition-colors duration-200 flex items-center">
+                                <i class="fas fa-download mr-2"></i> Unduh
+                            </a>
+                        </div>
                     </div>
                 </div>
-
-                <div class="mt-6">
-                    <p class="text-sm text-gray-500 mb-2">Preview</p>
-                    <div class="bg-gray-100 rounded-lg p-4">
-                        <img src="/storage/uploads/${encodeURIComponent(image.name)}" 
-                             alt="${image.name}"
-                             class="max-w-full max-h-48 object-contain mx-auto rounded"
-                             onerror="this.style.display='none'">
-                    </div>
-                </div>
-
-                <div class="mt-8 flex justify-end space-x-3">
-                    <button onclick="previewImage('${image.name}')"
-                        class="bg-blue-500 hover:bg-blue-600 text-white py-2.5 px-5 rounded-xl font-medium transition-colors duration-200 flex items-center">
-                        <i class="fas fa-eye mr-2"></i> Preview
-                    </button>
-                    <a 
-                        href="/download/${encodeURIComponent(image.name)}"
-                        class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-5 rounded-xl font-medium transition-colors duration-200 flex items-center">
-                        <i class="fas fa-download mr-2"></i> Unduh
-                    </a>
-                </div>
-            </div>
-        </div>
-    `;
+            `;
 
             modal.classList.remove('hidden');
         }
@@ -1305,38 +1723,42 @@
             applyFilters();
         });
 
-        // Mobile menu toggle
-        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-            document.querySelector('.sidebar').classList.toggle('active');
-        });
-
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', () => {
-            document.querySelectorAll('.dropdown-content').forEach(dropdown => {
-                dropdown.classList.add('hidden');
-            });
-            document.getElementById('filterDropdown').classList.add('hidden');
-        });
-
-        // Prevent dropdown close when clicking inside
-        document.querySelectorAll('.dropdown, #filterButton').forEach(element => {
-            element.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-        });
-
-        // Toggle filter dropdown
-        document.getElementById('filterButton').addEventListener('click', () => {
-            document.getElementById('filterDropdown').classList.toggle('hidden');
-        });
+        // ==================== INISIALISASI ====================
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', () => {
             fetchImages();
+            fetchUsers();
+            initializeShareModal();
+
+            // Mobile menu toggle
+            document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+                document.querySelector('.sidebar').classList.toggle('active');
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.dropdown-content').forEach(dropdown => {
+                    dropdown.classList.add('hidden');
+                });
+                document.getElementById('filterDropdown').classList.add('hidden');
+            });
+
+            // Prevent dropdown close when clicking inside
+            document.querySelectorAll('.dropdown, #filterButton').forEach(element => {
+                element.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+            });
+
+            // Toggle filter dropdown
+            document.getElementById('filterButton').addEventListener('click', () => {
+                document.getElementById('filterDropdown').classList.toggle('hidden');
+            });
         });
 
-         document.addEventListener('DOMContentLoaded', function () {
-
+        // Settings Modal Functionality
+        document.addEventListener('DOMContentLoaded', function () {
             const settingsModal = document.getElementById('settingsModal');
             const settingsBtn = document.getElementById('settingsBtn');
             const closeSettingsModal = document.getElementById('closeSettingsModal');
@@ -1391,7 +1813,7 @@
             // Real-time cek password match + strength
             passwordInput.addEventListener('input', function () {
                 checkPasswordMatch();
-                checkPasswordStrength(passwordInput.value); // <-- FIX: panggil strength
+                checkPasswordStrength(passwordInput.value);
             });
 
             confirmPasswordInput.addEventListener('input', function () {
@@ -1442,47 +1864,44 @@
                 passwordStrength.innerHTML = "";
             }
 
-        });
+            // Password strength system
+            function checkPasswordStrength(password) {
+                const strengthDisplay = document.getElementById("passwordStrength");
 
+                strengthDisplay.innerHTML = "";
 
-        // Password strength system (Tailwind only)
-        function checkPasswordStrength(password) {
-            const strengthDisplay = document.getElementById("passwordStrength");
+                if (!password) return;
 
-            strengthDisplay.innerHTML = "";
+                let score = 0;
 
-            if (!password) return;
+                if (password.length >= 6) score++;
+                if (password.length >= 10) score++;
+                if (/[A-Z]/.test(password)) score++;
+                if (/[0-9]/.test(password)) score++;
+                if (/[^A-Za-z0-9]/.test(password)) score++;
 
-            let score = 0;
+                let level = "";
+                let color = "";
 
-            if (password.length >= 6) score++;
-            if (password.length >= 10) score++;
-            if (/[A-Z]/.test(password)) score++;
-            if (/[0-9]/.test(password)) score++;
-            if (/[^A-Za-z0-9]/.test(password)) score++;
+                if (score <= 1) {
+                    level = "Weak";
+                    color = "bg-red-500";
+                } else if (score <= 3) {
+                    level = "Medium";
+                    color = "bg-yellow-400";
+                } else {
+                    level = "Strong";
+                    color = "bg-green-600";
+                }
 
-            let level = "";
-            let color = "";
-
-            if (score <= 1) {
-                level = "Weak";
-                color = "bg-red-500";
-            } else if (score <= 3) {
-                level = "Medium";
-                color = "bg-yellow-400";
-            } else {
-                level = "Strong";
-                color = "bg-green-600";
+                strengthDisplay.innerHTML = `
+                    <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-2 ${color} transition-all duration-300" style="width: ${score * 20}%;"></div>
+                    </div>
+                    <p class="text-xs mt-1 ${color.replace('bg', 'text')} font-medium">${level}</p>
+                `;
             }
-
-            strengthDisplay.innerHTML = `
-        <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div class="h-2 ${color} transition-all duration-300" style="width: ${score * 20}%;"></div>
-        </div>
-        <p class="text-xs mt-1 ${color.replace('bg', 'text')} font-medium">${level}</p>
-    `;
-        }
-
+        });
     </script>
 </body>
 

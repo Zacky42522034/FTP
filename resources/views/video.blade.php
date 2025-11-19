@@ -193,6 +193,56 @@
             font-size: 0.75rem;
             font-weight: 500;
         }
+
+        /* Modal Share Styles */
+        .fade-in {
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        .slide-down {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .selected-user {
+            background-color: #e0f2fe;
+            border-color: #0ea5e9;
+        }
+
+        /* Scrollbar lembut dan minimalis */
+        #filterDropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #filterDropdown::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.6);
+            border-radius: 3px;
+        }
+
+        #filterDropdown::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(107, 114, 128, 0.8);
+        }
     </style>
 </head>
 
@@ -360,9 +410,6 @@
                 </div>
 
                 <div class="flex items-center space-x-4">
-                    <!-- Search Bar -->
-                    
-
                     <!-- Quick Actions -->
                     <div class="flex space-x-2">
                         <button onclick="window.location.reload()"
@@ -652,6 +699,94 @@
         </div>
     </div>
 
+    <!-- Share Modal -->
+    <div id="shareModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden transition-opacity duration-300">
+        <div
+            class="modal-box bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 transform transition-all duration-300 slide-down">
+
+            <!-- HEADER -->
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">Bagikan File</h3>
+                    <p class="text-sm text-gray-500 mt-1">Pilih penerima untuk berbagi</p>
+                </div>
+                <button
+                    class="close-share-modal text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- BODY -->
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- KIRI: File + Search + Users -->
+                <div class="space-y-6">
+                    <!-- FILE INFO -->
+                    <div>
+                        <h4 class="font-medium text-gray-700 mb-2">File yang akan dibagikan:</h4>
+                        <div id="sharedFileInfo" class="bg-gray-50 p-3 rounded-lg flex items-center">
+                            <i class="fas fa-file-video text-blue-500 mr-3"></i>
+                            <span id="sharedFileName" class="font-medium">Nama File</span>
+                        </div>
+                    </div>
+
+                    <!-- SEARCH -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-search mr-2 text-gray-500"></i>Cari Penerima
+                        </label>
+                        <div class="relative">
+                            <input type="text"
+                                class="search-users w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                placeholder="Cari nama atau email...">
+                            <button type="button"
+                                class="clear-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 hidden">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- USER LIST -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-users mr-2 text-gray-500"></i>Pilih Penerima
+                        </label>
+                        <div class="border border-gray-300 rounded-xl max-h-64 overflow-y-auto">
+                            <div class="users-list divide-y divide-gray-200"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KANAN: Selected Users -->
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-user-check mr-2 text-gray-500"></i>
+                            Penerima Dipilih <span class="selected-count text-blue-500 ml-1">(0)</span>
+                        </label>
+                        <div
+                            class="selected-users flex flex-wrap gap-2 min-h-12 p-3 border border-gray-300 rounded-xl bg-gray-50">
+                            <p class="placeholder text-gray-500 text-sm py-2 px-3">Belum ada penerima dipilih</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER BUTTONS -->
+            <div class="px-6 pb-6 flex space-x-3">
+                <button type="button"
+                    class="cancel-share flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-xl font-medium transition-colors">
+                    Batal
+                </button>
+                <button type="button"
+                    class="share-button flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl font-medium flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled>
+                    <i class="fas fa-share-alt mr-2"></i>Bagikan
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="settingsModal"
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden transition-opacity">
 
@@ -760,6 +895,12 @@
         let activeFilterType = 'all';
         let videoDurations = new Map(); // Cache untuk durasi video yang sudah di-load
 
+        // Variabel untuk fitur berbagi
+        let currentFileToShare = null;
+        let users = [];
+        let selectedUsers = [];
+        let filteredUsers = [];
+
         // Video file types configuration
         const videoTypes = [
             'mp4', 'avi', 'mov', 'mkv', 'wmv', 'flv', 'webm',
@@ -846,6 +987,277 @@
                 previewColor: 'bg-gradient-to-br from-gray-500 to-gray-600'
             },
         };
+
+        // ==================== FUNGSI BERBAGI FILE ====================
+
+        // Fungsi untuk membuka modal berbagi
+        function openShareModal(fileName) {
+            currentFileToShare = fileName;
+            const modal = document.getElementById('shareModal');
+            const fileNameElement = document.getElementById('sharedFileName');
+
+            fileNameElement.textContent = fileName;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            // Reset dan render ulang daftar pengguna
+            selectedUsers = [];
+            filteredUsers = [...users];
+            renderUsersList();
+            renderSelectedUsers();
+            updateShareButton();
+
+            setTimeout(() => {
+                const searchInput = document.querySelector('.search-users');
+                if (searchInput) searchInput.focus();
+            }, 300);
+        }
+
+        // Fungsi untuk menutup modal berbagi
+        function closeShareModal() {
+            const modal = document.getElementById('shareModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            resetShareForm();
+        }
+
+        // Fungsi untuk merender daftar pengguna
+        function renderUsersList() {
+            const usersList = document.querySelector('.users-list');
+            if (!usersList) return;
+
+            usersList.innerHTML = '';
+
+            if (filteredUsers.length === 0) {
+                usersList.innerHTML = `
+                    <div class="p-4 text-center text-gray-500">
+                        <i class="fas fa-user-slash text-2xl mb-2"></i>
+                        <p>Tidak ada pengguna</p>
+                    </div>`;
+                return;
+            }
+
+            filteredUsers.forEach(user => {
+                const isSelected = selectedUsers.some(u => u.id === user.id);
+
+                const div = document.createElement('div');
+                div.className = `
+                    p-3 cursor-pointer transition-all duration-200 
+                    ${isSelected ? 'selected-user bg-blue-50' : 'hover:bg-gray-50'}
+                `;
+
+                div.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 
+                            ${user.color || 'bg-blue-500'} 
+                            rounded-full flex items-center justify-center 
+                            text-white font-medium mr-3">
+                            ${user.avatar || user.name.substring(0, 2).toUpperCase()}
+                        </div>
+
+                        <div class="flex-1">
+                            <div class="font-medium">${user.name}</div>
+                            <div class="text-sm text-gray-500">${user.email}</div>
+                        </div>
+
+                        <div class="w-5 h-5 rounded-full border-2 
+                            ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300'} 
+                            flex items-center justify-center">
+                            ${isSelected ? '<i class="fas fa-check text-white text-xs"></i>' : ''}
+                        </div>
+                    </div>
+                `;
+
+                div.addEventListener('click', () => toggleUser(user));
+                usersList.appendChild(div);
+            });
+        }
+
+        // Fungsi untuk toggle pemilihan pengguna
+        function toggleUser(user) {
+            const index = selectedUsers.findIndex(u => u.id === user.id);
+            if (index === -1) {
+                selectedUsers.push(user);
+            } else {
+                selectedUsers.splice(index, 1);
+            }
+            renderUsersList();
+            renderSelectedUsers();
+            updateShareButton();
+        }
+
+        // Fungsi untuk merender pengguna yang dipilih
+        function renderSelectedUsers() {
+            const selectedUsersBox = document.querySelector('.selected-users');
+            const selectedCount = document.querySelector('.selected-count');
+
+            if (!selectedUsersBox || !selectedCount) return;
+
+            selectedUsersBox.innerHTML = '';
+            selectedCount.textContent = `(${selectedUsers.length})`;
+
+            if (selectedUsers.length === 0) {
+                selectedUsersBox.innerHTML = '<p class="placeholder text-gray-500 text-sm py-2 px-3">Belum ada penerima dipilih</p>';
+                return;
+            }
+
+            selectedUsers.forEach(user => {
+                const chip = document.createElement('div');
+                chip.className = 'bg-blue-100 text-blue-800 rounded-full py-1 px-3 text-sm flex items-center';
+                chip.innerHTML = `
+                    <span>${user.name}</span>
+                    <button class="ml-2 text-blue-600 hover:text-blue-800">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                `;
+                chip.querySelector('button').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleUser(user);
+                });
+                selectedUsersBox.appendChild(chip);
+            });
+        }
+
+        // Fungsi untuk update tombol berbagi
+        function updateShareButton() {
+            const shareButton = document.querySelector('.share-button');
+            if (shareButton) {
+                shareButton.disabled = selectedUsers.length === 0;
+            }
+        }
+
+        // Fungsi untuk reset form berbagi
+        function resetShareForm() {
+            selectedUsers = [];
+            filteredUsers = [...users];
+            const searchInput = document.querySelector('.search-users');
+            if (searchInput) searchInput.value = '';
+            const clearSearch = document.querySelector('.clear-search');
+            if (clearSearch) clearSearch.classList.add('hidden');
+            renderUsersList();
+            renderSelectedUsers();
+            updateShareButton();
+        }
+
+        // Fungsi untuk menangani proses berbagi
+        async function handleShare() {
+            if (selectedUsers.length === 0) {
+                Swal.fire('Peringatan', 'Pilih setidaknya satu penerima.', 'warning');
+                return;
+            }
+
+            if (!currentFileToShare) {
+                Swal.fire('Peringatan', 'Nama file tidak ditemukan.', 'warning');
+                return;
+            }
+
+            try {
+                const recipients = selectedUsers.map(u => u.email); // ambil email penerima
+                const recipientsString = recipients[0]; // untuk sementara ambil 1 dulu
+
+                const response = await fetch('/files/share', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        files: [
+                            {
+                                name: currentFileToShare,
+                                size: "0 MB" // bisa diubah sesuai data asli
+                            }
+                        ],
+                        to_email: recipientsString
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    Swal.fire('Error', data.error || 'Gagal membagikan file', 'error');
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: `File "${currentFileToShare}" telah dibagikan kepada ${recipientsString}`,
+                    icon: 'success'
+                }).then(() => {
+                    closeShareModal();
+                    fetchVideos();
+                });
+
+            } catch (error) {
+                console.error('Error sharing file:', error);
+                Swal.fire('Error', 'Gagal membagikan file', 'error');
+            }
+        }
+
+        // Inisialisasi event listeners untuk modal berbagi
+        function initializeShareModal() {
+            const closeShareBtn = document.querySelector('.close-share-modal');
+            const cancelShareBtn = document.querySelector('.cancel-share');
+            const shareBtn = document.querySelector('.share-button');
+            const searchInput = document.querySelector('.search-users');
+            const clearSearch = document.querySelector('.clear-search');
+
+            if (closeShareBtn) closeShareBtn.addEventListener('click', closeShareModal);
+            if (cancelShareBtn) cancelShareBtn.addEventListener('click', closeShareModal);
+            if (shareBtn) shareBtn.addEventListener('click', handleShare);
+
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    const term = searchInput.value.toLowerCase();
+                    if (clearSearch) clearSearch.classList.toggle('hidden', term.length === 0);
+                    filteredUsers = users.filter(user =>
+                        user.name.toLowerCase().includes(term) ||
+                        user.email.toLowerCase().includes(term)
+                    );
+                    renderUsersList();
+                });
+            }
+
+            if (clearSearch) {
+                clearSearch.addEventListener('click', () => {
+                    if (searchInput) searchInput.value = '';
+                    clearSearch.classList.add('hidden');
+                    filteredUsers = [...users];
+                    renderUsersList();
+                });
+            }
+
+            const shareModal = document.getElementById('shareModal');
+            if (shareModal) {
+                shareModal.addEventListener('click', (e) => {
+                    if (e.target === shareModal) closeShareModal();
+                });
+            }
+        }
+
+        // Ambil data users untuk fitur berbagi
+        async function fetchUsers() {
+            try {
+                const response = await fetch('/users');
+                if (!response.ok) throw new Error('Failed to fetch users');
+                users = await response.json();
+                filteredUsers = [...users];
+                renderUsersList();
+            } catch (error) {
+                console.error('Error memuat users:', error);
+                // Fallback data jika API tidak tersedia
+                users = [
+                    { id: 1, name: 'Ahmad Wijaya', email: 'ahmad@example.com', avatar: 'AW', color: 'bg-blue-500' },
+                    { id: 2, name: 'Sari Indah', email: 'sari@example.com', avatar: 'SI', color: 'bg-pink-500' },
+                    { id: 3, name: 'Budi Santoso', email: 'budi@example.com', avatar: 'BS', color: 'bg-green-500' },
+                    { id: 4, name: 'Dewi Lestari', email: 'dewi@example.com', avatar: 'DL', color: 'bg-purple-500' }
+                ];
+                filteredUsers = [...users];
+                renderUsersList();
+            }
+        }
+
+        // ==================== FUNGSI UTAMA VIDEO ====================
 
         // Ambil data file dari backend Laravel dan filter hanya video
         async function fetchVideos() {
@@ -1193,7 +1605,8 @@
                                     onclick="event.stopPropagation()">
                                     <i class="fas fa-download mr-2"></i> Unduh
                                 </a>
-                                <a href="javascript:void(0);" onclick="event.preventDefault()"
+                                <a href="javascript:void(0);" 
+                                    onclick="event.preventDefault(); openShareModal('${video.name}')" 
                                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     <i class="fas fa-share-alt mr-2"></i> Bagikan
                                 </a>
@@ -1305,6 +1718,10 @@
                                onclick="event.stopPropagation()">
                                 <i class="fas fa-download"></i>
                             </a>
+                            <button onclick="event.preventDefault(); openShareModal('${video.name}')"
+                                    class="text-indigo-600 hover:text-indigo-900 p-2 rounded-lg hover:bg-indigo-50 transition-colors">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
                             <button onclick="event.preventDefault(); confirmDelete('${encodeURIComponent(video.name)}')"
                                     class="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors">
                                 <i class="fas fa-trash-alt"></i>
@@ -1626,6 +2043,10 @@
                                 class="bg-green-500 hover:bg-green-600 text-white py-2.5 px-5 rounded-xl font-medium transition-colors duration-200 flex items-center justify-center">
                                 <i class="fas fa-play mr-2"></i> Putar Video
                             </button>
+                            <button onclick="event.preventDefault(); openShareModal('${video.name}')"
+                                class="bg-blue-500 hover:bg-blue-600 text-white py-2.5 px-5 rounded-xl font-medium transition-colors duration-200 flex items-center justify-center">
+                                <i class="fas fa-share-alt mr-2"></i> Bagikan
+                            </button>
                             <a 
                                 href="/storage/uploads/${encodeURIComponent(video.name)}"
                                 download
@@ -1646,7 +2067,6 @@
                 document.getElementById('fileModal').classList.add('hidden');
             });
         });
-
 
         // Filter videos by type
         function filterVideos(type) {
@@ -1802,41 +2222,6 @@
                 });
             }
 
-            // Setup global search dengan debounce
-            const globalSearch = document.getElementById('globalSearch');
-            if (globalSearch) {
-                globalSearch.addEventListener('input', (e) => {
-                    e.preventDefault();
-
-                    // Clear previous timeout
-                    if (searchTimeout) {
-                        clearTimeout(searchTimeout);
-                    }
-
-                    // Set new timeout untuk debounce
-                    searchTimeout = setTimeout(() => {
-                        const searchTerm = e.target.value.toLowerCase();
-
-                        if (searchTerm.length === 0) {
-                            filteredVideos = [...videos];
-                        } else {
-                            filteredVideos = videos.filter(video =>
-                                video.name.toLowerCase().includes(searchTerm)
-                            );
-                        }
-
-                        currentPage = 1;
-                        updateVideoStats();
-                        sortFiles();
-                        renderVideos();
-                        setupPagination();
-
-                        // Load durasi untuk hasil pencarian
-                        loadVideoDurations();
-                    }, 300); // 300ms debounce
-                });
-            }
-
             // Setup mobile menu
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
             if (mobileMenuBtn) {
@@ -1845,6 +2230,12 @@
                     document.querySelector('.sidebar').classList.toggle('active');
                 });
             }
+
+            // Initialize share modal
+            initializeShareModal();
+
+            // Load users data for sharing
+            fetchUsers();
 
             // Load video data
             fetchVideos();
@@ -1867,8 +2258,9 @@
         window.filterVideos = filterVideos;
         window.toggleView = toggleView;
         window.sortBy = sortBy;
+        window.openShareModal = openShareModal;
 
-         document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function () {
 
             const settingsModal = document.getElementById('settingsModal');
             const settingsBtn = document.getElementById('settingsBtn');
@@ -1976,7 +2368,6 @@
             }
 
         });
-
 
         // Password strength system (Tailwind only)
         function checkPasswordStrength(password) {

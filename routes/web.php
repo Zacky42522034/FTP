@@ -45,3 +45,12 @@ Route::get('/favorites', [FavoriteController::class, 'favorite'])->middleware('a
 Route::get('/earth', [EarthController::class, 'earth'])->middleware('auth');
 Route::post('/settings/update', [AuthController::class, 'updateSettings'])->name('settings.update');
 
+Route::get('/users', [AuthController::class, 'users']);
+
+
+
+Route::post('/files/share', [FileController::class, 'share'])->name('files.share');
+
+
+
+
