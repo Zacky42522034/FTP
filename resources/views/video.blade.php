@@ -243,6 +243,13 @@
         #filterDropdown::-webkit-scrollbar-thumb:hover {
             background-color: rgba(107, 114, 128, 0.8);
         }
+
+        /* Style untuk filter aktif */
+        .filter-option.active {
+            background-color: #eff6ff;
+            color: #3b82f6;
+            font-weight: 500;
+        }
     </style>
 </head>
 
@@ -350,7 +357,7 @@
                         class="ml-auto bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full font-medium">{{ $totalArchives }}</span>
                 </a>
 
-                <a href="#"
+                <a href="/share"
                     class="flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition">
                     <i class="fas fa-share-alt w-5 mr-3"></i>
                     <span>Berbagi</span>
@@ -361,13 +368,15 @@
                     class="flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg">
                     <i class="fas fa-star w-5 mr-3"></i>
                     <span>Favorit</span>
-                    <span class="ml-auto bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full font-medium">{{ $favoriteFiles }}</span>
+                    <span
+                        class="ml-auto bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full font-medium">{{ $favoriteFiles }}</span>
                 </a>
                 <a href="/earth"
                     class="flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg">
                     <i class="fas fa-earth-asia w-5 mr-3"></i>
                     <span>Google Earth</span>
-                    <span class="ml-auto bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full font-medium">{{ $totalMap }}</span>
+                    <span
+                        class="ml-auto bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full font-medium">{{ $totalMap }}</span>
                 </a>
             </nav>
         </div>
@@ -510,66 +519,136 @@
                             <i class="fas fa-search absolute right-3 top-3.5 text-gray-500"></i>
                         </div>
 
-                        <!-- Filter Format -->
+                        <!-- Filter Format - DIPERBAIKI SEPERTI DI DOKUMEN -->
                         <div class="relative inline-block text-left">
+                            <!-- Tombol Filter -->
                             <button id="filterButton"
                                 class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-4 rounded-xl font-medium transition-colors duration-200 flex items-center">
-                                <i class="fas fa-filter mr-2"></i> Format Video
+                                <i class="fas fa-filter mr-2"></i> Filter
                                 <i class="fas fa-chevron-down ml-2 text-gray-500"></i>
                             </button>
+
+                            <!-- Dropdown Filter -->
+                            @php
+                                // Daftar ekstensi video
+                                $videoExtensions = [
+                                    'mp4',
+                                    'avi',
+                                    'mov',
+                                    'mkv',
+                                    'wmv',
+                                    'webm'
+                                ];
+
+                                // Filter hanya file video
+                                $videoFiles = collect($files)->filter(function ($file) use ($videoExtensions) {
+                                    return in_array(strtolower($file['type']), $videoExtensions);
+                                });
+
+                                // Ambil 8 video terakhir
+                                $latestVideos = $videoFiles->sortByDesc('created_at');
+
+                                // Ambil tipe unik dari 8 video terakhir
+                                $latestTypes = $latestVideos->pluck('type')
+                                    ->map(fn($t) => strtolower($t))
+                                    ->unique();
+
+                                // Cek format video
+                                $hasMP4 = $latestTypes->contains('mp4');
+                                $hasAVI = $latestTypes->contains('avi');
+                                $hasMOV = $latestTypes->contains('mov');
+                                $hasMKV = $latestTypes->contains('mkv');
+                                $hasWMV = $latestTypes->contains('wmv');
+                                $hasWebM = $latestTypes->contains('webm');
+                            @endphp
+
 
                             <div id="filterDropdown"
                                 class="hidden absolute right-0 mt-2 max-h-64 overflow-y-auto w-48 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 z-10 transition-all duration-200">
                                 <ul class="py-2 text-gray-700" id="filterList">
                                     <li>
                                         <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md active"
                                             data-type="all" onclick="filterVideos('all')">
-                                            Semua Format
+                                            Semua
                                         </button>
                                     </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="mp4" onclick="filterVideos('mp4')">
-                                            MP4
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="avi" onclick="filterVideos('avi')">
-                                            AVI
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="mov" onclick="filterVideos('mov')">
-                                            MOV
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="mkv" onclick="filterVideos('mkv')">
-                                            MKV
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="wmv" onclick="filterVideos('wmv')">
-                                            WMV
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="webm" onclick="filterVideos('webm')">
-                                            WebM
-                                        </button>
-                                    </li>
+
+                                    @if ($hasMP4)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="mp4" onclick="filterVideos('mp4')">
+                                                MP4
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasAVI)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="avi" onclick="filterVideos('avi')">
+                                                AVI
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasMOV)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="mov" onclick="filterVideos('mov')">
+                                                MOV
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasMKV)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="mkv" onclick="filterVideos('mkv')">
+                                                MKV
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasWMV)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="wmv" onclick="filterVideos('wmv')">
+                                                WMV
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasWebM)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="webm" onclick="filterVideos('webm')">
+                                                WebM
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    {{-- 🔹 Render format video lainnya yang ada di 8 file terakhir --}}
+                                    @foreach ($latestTypes as $type)
+                                        @php
+                                            $lowerType = strtolower($type);
+                                        @endphp
+                                        @if (!in_array($lowerType, ['mp4', 'avi', 'mov', 'mkv', 'wmv', 'webm']))
+                                            <li>
+                                                <button
+                                                    class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                    data-type="{{ $lowerType }}" onclick="filterVideos('{{ $lowerType }}')">
+                                                    {{ strtoupper($type) }}
+                                                </button>
+                                            </li>
+                                        @endif
+                                    @endforeach
                                 </ul>
                             </div>
                         </div>
@@ -688,8 +767,8 @@
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 transform transition-transform">
             <div class="p-6 border-b border-gray-200 flex justify-between items-center">
                 <h3 class="text-xl font-bold text-gray-800">Detail Video</h3>
-                <button
-                    class="closeModal text-gray-500 hover:text-gray-700 p-1 rounded-lg hover:bg-gray-100 transition-colors">
+                <button id="closeFileModal"
+                    class="text-gray-500 hover:text-gray-700 p-1 rounded-lg hover:bg-gray-100 transition-colors">
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
@@ -803,9 +882,9 @@
 
             <!-- Content -->
             <div class="p-6 flex flex-col space-y-6">
-                
+
                 <form id="settingsForm" class="flex flex-col space-y-6" action="/settings/update" method="POST">
-                            @csrf
+                    @csrf
                     <!-- Username -->
                     <div class="flex flex-col">
                         <label class="text-sm font-medium text-gray-700 mb-2">
@@ -853,7 +932,7 @@
                                 <i class="fas fa-lock mr-2 text-gray-500"></i>Konfirmasi Password
                             </label>
                             <div class="relative">
-                                <input type="password" id="confirmPassword"  name="password_confirmation" class="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl 
+                                <input type="password" id="confirmPassword" name="password_confirmation" class="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl 
                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     placeholder="Konfirmasi password baru">
                                 <button type="button" id="toggleConfirmPassword"
@@ -871,7 +950,7 @@
                             class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-xl font-medium">
                             Batal
                         </button>
-                        <button type="submit" 
+                        <button type="submit"
                             class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl font-medium flex items-center justify-center">
                             <i class="fas fa-save mr-2"></i>Simpan Perubahan
                         </button>
@@ -886,13 +965,14 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         let videos = [];
+        let allVideos = [];
         let currentView = 'grid';
         let currentPage = 1;
         const itemsPerPage = 12;
         let currentSort = { field: 'date', direction: 'desc' };
-        let filteredVideos = [];
-        let searchTimeout = null;
         let activeFilterType = 'all';
+        let filteredVideos = []; // DITAMBAHKAN: Deklarasi filteredVideos yang hilang
+        let searchTimeout = null;
         let videoDurations = new Map(); // Cache untuk durasi video yang sudah di-load
 
         // Variabel untuk fitur berbagi
@@ -1278,15 +1358,14 @@
                     return videoTypes.includes(ext);
                 });
 
-                // Set filteredVideos sama dengan videos awal
+                // Set allVideos dan filteredVideos sama dengan videos awal
+                allVideos = [...videos];
                 filteredVideos = [...videos];
 
                 console.log('🎬 Filtered video files:', videos.length);
 
                 updateVideoStats();
-                sortFiles();
-                renderVideos();
-                setupPagination();
+                applySearchAndFilter();
                 hideLoading();
 
                 // Load durasi video setelah render
@@ -1308,16 +1387,39 @@
                     { name: 'company-profile.mkv', size: '145.3 MB', date: '2023-10-05', created_at: '2023-10-05T00:00:00Z' },
                     { name: 'webinar-recording.webm', size: '167.8 MB', date: '2023-10-04', created_at: '2023-10-04T00:00:00Z' }
                 ];
+                allVideos = [...videos];
                 filteredVideos = [...videos];
                 updateVideoStats();
-                sortFiles();
-                renderVideos();
-                setupPagination();
+                applySearchAndFilter();
                 hideLoading();
 
                 // Load durasi video untuk data fallback
                 loadVideoDurations();
             }
+        }
+
+        // Apply search and filter - SAMA SEPERTI DI DOKUMEN
+        function applySearchAndFilter() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            // Filter dan search pada data asli
+            filteredVideos = allVideos.filter(video => {
+                const ext = video.name?.split('.').pop()?.toLowerCase() || '';
+                const name = (video.name || '').toLowerCase();
+
+                const matchSearch = name.includes(searchValue) || ext.includes(searchValue);
+
+                const matchFilter =
+                    activeFilterType === 'all' ||
+                    ext === activeFilterType;
+
+                return matchSearch && matchFilter;
+            });
+
+            currentPage = 1; // Reset ke halaman pertama
+            sortFiles();
+            renderVideos();
+            setupPagination();
         }
 
         // Fungsi untuk memuat durasi video dari file sebenarnya
@@ -1433,7 +1535,7 @@
             // Loading akan diganti dengan konten saat renderVideos() dipanggil
         }
 
-        // Update video statistics - VERSI DIPERBAIKI
+        // Update video statistics
         function updateVideoStats() {
             const totalVideos = filteredVideos.length;
 
@@ -2061,47 +2163,27 @@
             modal.classList.remove('hidden');
         }
 
-        // Close modal
-        document.querySelectorAll('.closeModal').forEach(btn => {
-            btn.addEventListener('click', function () {
-                document.getElementById('fileModal').classList.add('hidden');
-            });
-        });
+        // Close file modal
+        function closeFileModal() {
+            const modal = document.getElementById('fileModal');
+            modal.classList.add('hidden');
+        }
 
-        // Filter videos by type
+        // Filter videos by type - SAMA PERSIS SEPERTI DI DOKUMEN
         function filterVideos(type) {
             activeFilterType = type;
 
-            if (type === 'all') {
-                filteredVideos = [...videos];
-            } else {
-                filteredVideos = videos.filter(video => {
-                    const ext = video.name?.split('.').pop()?.toLowerCase();
-                    return ext === type;
-                });
-            }
+            // Update UI - aktifkan tombol filter yang dipilih
+            document.querySelectorAll('.filter-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === type);
+            });
 
-            currentPage = 1; // Reset ke halaman 1 saat filter
-            updateVideoStats();
-            sortFiles();
-            renderVideos();
-            setupPagination();
+            document.getElementById('filterDropdown').classList.add('hidden');
 
-            // Load durasi untuk video yang difilter
-            loadVideoDurations();
+            // Simpan filter yang dipilih
+            localStorage.setItem('selectedVideoType', type);
 
-            // Update filter button text
-            const filterButton = document.getElementById('filterButton');
-            if (filterButton) {
-                const filterText = type === 'all' ? 'Format Video' : type.toUpperCase();
-                filterButton.innerHTML = `<i class="fas fa-filter mr-2"></i> ${filterText} <i class="fas fa-chevron-down ml-2 text-gray-500"></i>`;
-            }
-
-            // Hide filter dropdown
-            const filterDropdown = document.getElementById('filterDropdown');
-            if (filterDropdown) {
-                filterDropdown.classList.add('hidden');
-            }
+            applySearchAndFilter();
         }
 
         // Toggle view between grid and list
@@ -2165,21 +2247,23 @@
                 });
             });
 
-            // Setup filter dropdown toggle
+            // Setup filter dropdown toggle - SAMA SEPERTI DI DOKUMEN
             document.getElementById('filterButton').addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 const filterDropdown = document.getElementById('filterDropdown');
                 filterDropdown.classList.toggle('hidden');
             });
 
-            // Close dropdown when clicking outside
+            // Close dropdown when clicking outside - SAMA SEPERTI DI DOKUMEN
             document.addEventListener('click', (e) => {
-                if (!e.target.closest('.relative.inline-block.text-left')) {
-                    const filterDropdown = document.getElementById('filterDropdown');
-                    if (filterDropdown) filterDropdown.classList.add('hidden');
+                // Close filter dropdown
+                const filterDropdown = document.getElementById('filterDropdown');
+                if (filterDropdown && !e.target.closest('.relative.inline-block.text-left')) {
+                    filterDropdown.classList.add('hidden');
                 }
 
-                // Close all dropdowns when clicking outside
+                // Close all file dropdowns
                 if (!e.target.closest('.dropdown')) {
                     document.querySelectorAll('.dropdown-content').forEach(dropdown => {
                         dropdown.classList.add('hidden');
@@ -2200,24 +2284,7 @@
 
                     // Set new timeout untuk debounce
                     searchTimeout = setTimeout(() => {
-                        const searchTerm = e.target.value.toLowerCase();
-
-                        if (searchTerm.length === 0) {
-                            filteredVideos = [...videos];
-                        } else {
-                            filteredVideos = videos.filter(video =>
-                                video.name.toLowerCase().includes(searchTerm)
-                            );
-                        }
-
-                        currentPage = 1;
-                        updateVideoStats();
-                        sortFiles();
-                        renderVideos();
-                        setupPagination();
-
-                        // Load durasi untuk hasil pencarian
-                        loadVideoDurations();
+                        applySearchAndFilter();
                     }, 300); // 300ms debounce
                 });
             }
@@ -2231,6 +2298,9 @@
                 });
             }
 
+            // Initialize modal close functionality
+            initializeModalClose();
+
             // Initialize share modal
             initializeShareModal();
 
@@ -2240,7 +2310,63 @@
             // Load video data
             fetchVideos();
 
+            // Terapkan filter yang disimpan
+            const savedFilter = localStorage.getItem('selectedVideoType');
+            if (savedFilter) {
+                activeFilterType = savedFilter;
+                document.querySelectorAll('.filter-option').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.type === savedFilter);
+                });
+            }
+
             console.log('✅ App initialized successfully');
+        }
+
+        // Initialize modal close functionality
+        function initializeModalClose() {
+            // File detail modal
+            const closeFileModalBtn = document.getElementById('closeFileModal');
+            const fileModal = document.getElementById('fileModal');
+            
+            if (closeFileModalBtn) {
+                closeFileModalBtn.addEventListener('click', closeFileModal);
+            }
+            
+            if (fileModal) {
+                fileModal.addEventListener('click', (e) => {
+                    if (e.target === fileModal) {
+                        closeFileModal();
+                    }
+                });
+            }
+
+            // Settings modal
+            const closeSettingsModalBtn = document.getElementById('closeSettingsModal');
+            const settingsModal = document.getElementById('settingsModal');
+            const cancelSettingsBtn = document.getElementById('cancelSettings');
+            
+            if (closeSettingsModalBtn) {
+                closeSettingsModalBtn.addEventListener('click', () => {
+                    settingsModal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                });
+            }
+            
+            if (cancelSettingsBtn) {
+                cancelSettingsBtn.addEventListener('click', () => {
+                    settingsModal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                });
+            }
+            
+            if (settingsModal) {
+                settingsModal.addEventListener('click', (e) => {
+                    if (e.target === settingsModal) {
+                        settingsModal.classList.add('hidden');
+                        document.body.style.overflow = 'auto';
+                    }
+                });
+            }
         }
 
         // Start the app when DOM is fully loaded
@@ -2259,6 +2385,7 @@
         window.toggleView = toggleView;
         window.sortBy = sortBy;
         window.openShareModal = openShareModal;
+        window.closeFileModal = closeFileModal;
 
         document.addEventListener('DOMContentLoaded', function () {
 

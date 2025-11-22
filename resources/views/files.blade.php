@@ -285,7 +285,7 @@
                         class="ml-auto bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full font-medium">{{ $totalArchives }}</span>
                 </a>
 
-                <a href="#"
+                <a href="/share"
                     class="flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition">
                     <i class="fas fa-share-alt w-5 mr-3"></i>
                     <span>Berbagi</span>

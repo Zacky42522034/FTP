@@ -28,25 +28,85 @@ class FileController extends Controller
                         $ext = strtolower($value->getClientOriginalExtension());
 
                         $allowed = [
-                            'pdf',
-                            'doc',
-                            'docx',
+                            // Image
                             'jpg',
                             'jpeg',
                             'png',
-                            'mp4',
-                            'mp3',
-                            'zip',
+                            'gif',
+                            'bmp',
+                            'tiff',
+                            'tif',
+                            'svg',
+                            'webp',
+                            'ico',
+                            'heic',
+                            'heif',
+                            'raw',
+                            'psd',
+                            'ai',
+                            'eps',
+                            'indd',
+
+                            // Document
+                            'pdf',
+                            'doc',
+                            'docx',
+                            'odt',
+                            'rtf',
                             'txt',
+                            'md',
+                            'html',
+                            'htm',
+                            'xls',
                             'xlsx',
-                            'rar',
+                            'csv',
+                            'ods',
+                            'ppt',
                             'pptx',
-                            'kmz',
-                            'avi',
+                            'odp',
+                            'epub',
+                            'mobi',
+
+                            // Video
+                            'mp4',
                             'mkv',
+                            'avi',
+                            'mov',
+                            'wmv',
+                            'flv',
+                            'webm',
+                            'mpeg',
+                            'mpg',
+                            '3gp',
+                            'm4v',
+                            'ts',
+
+                            // Audio
+                            'mp3',
+                            'wav',
+                            'aac',
+                            'ogg',
+                            'oga',
+                            'flac',
+                            'm4a',
+                            'wma',
+                            'amr',
+                            'aiff',
+                            'opus',
+
+                            // Archive
+                            'zip',
+                            'rar',
                             '7z',
-                            'kml'
+                            'tar',
+                            'gz',
+                            'bz2',
+                            'xz',
+                            'iso',
+                            'kml',
+                            'kmz'
                         ];
+
 
                         if (!in_array($ext, $allowed)) {
                             return $fail("File dengan ekstensi .$ext tidak didukung.");
@@ -261,6 +321,37 @@ class FileController extends Controller
                 $type = $name; // mengikuti permintaan: type = name
                 $size = $file['size'] ?? '0 MB';
 
+                // -----------------------------
+                // 1. Tentukan path asal & tujuan
+                // -----------------------------
+                $source = storage_path('app/public/uploads/' . $name);
+                $destination = storage_path('app/public/share/' . $name);
+
+                // -----------------------------
+                // 2. Cek apakah file sumber ada
+                // -----------------------------
+                if (!file_exists($source)) {
+                    return response()->json([
+                        'error' => "File $name tidak ditemukan di folder uploads."
+                    ], 404);
+                }
+
+                // -----------------------------
+                // 3. Pastikan folder share ada
+                // -----------------------------
+                $shareFolder = storage_path('app/public/share');
+                if (!file_exists($shareFolder)) {
+                    mkdir($shareFolder, 0775, true);
+                }
+
+                // -----------------------------
+                // 4. Copy file ke folder share
+                // -----------------------------
+                copy($source, $destination);
+
+                // -----------------------------
+                // 5. Simpan data share ke database
+                // -----------------------------
                 SharedFile::create([
                     'from_user' => $fromUser,
                     'to_email' => $toEmail,
@@ -281,6 +372,7 @@ class FileController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
 
 
 

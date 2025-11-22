@@ -183,6 +183,13 @@
         #filterDropdown::-webkit-scrollbar-thumb:hover {
             background-color: rgba(107, 114, 128, 0.8);
         }
+
+        /* Tambahan untuk styling filter aktif */
+        .filter-option.active {
+            background-color: #eff6ff;
+            color: #3b82f6;
+            font-weight: 500;
+        }
     </style>
 </head>
 
@@ -290,7 +297,7 @@
                         class="ml-auto bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full font-medium">{{ $totalArchives }}</span>
                 </a>
 
-                <a href="#"
+                <a href="/share"
                     class="flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition">
                     <i class="fas fa-share-alt w-5 mr-3"></i>
                     <span>Berbagi</span>
@@ -452,59 +459,127 @@
                             <i class="fas fa-search absolute right-3 top-3.5 text-gray-500"></i>
                         </div>
 
-                        <!-- Filter Format -->
+                        <!-- Filter Format - SAMA PERSIS SEPERTI DI ALL-FILE -->
                         <div class="relative inline-block text-left">
+                            <!-- Tombol Filter -->
                             <button id="filterButton"
                                 class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-4 rounded-xl font-medium transition-colors duration-200 flex items-center">
-                                <i class="fas fa-filter mr-2"></i> Tipe Dokumen
+                                <i class="fas fa-filter mr-2"></i> Filter
                                 <i class="fas fa-chevron-down ml-2 text-gray-500"></i>
                             </button>
+
+                            <!-- Dropdown Filter -->
+                            @php
+                                // Daftar ekstensi dokumen
+                                $docExtensions = [
+                                    'pdf',
+                                    'doc',
+                                    'docx',
+                                    'xls',
+                                    'xlsx',
+                                    'ppt',
+                                    'pptx',
+                                    'txt'
+                                ];
+
+                                // Filter hanya file dokumen
+                                $documentFiles = collect($files)->filter(function ($file) use ($docExtensions) {
+                                    return in_array(strtolower($file['type']), $docExtensions);
+                                });
+
+                                // Ambil 8 dokumen terakhir
+                                $latestDocuments = $documentFiles->sortByDesc('created_at');
+
+                                // Ambil semua tipe unik dari 8 file terakhir
+                                $latestTypes = $latestDocuments->pluck('type')
+                                    ->map(fn($t) => strtolower($t))
+                                    ->unique();
+
+                                // Cek format dokumen
+                                $hasPDF = $latestTypes->contains('pdf');
+                                $hasWord = $latestTypes->contains(fn($t) => in_array($t, ['doc', 'docx']));
+                                $hasExcel = $latestTypes->contains(fn($t) => in_array($t, ['xls', 'xlsx']));
+                                $hasPowerPoint = $latestTypes->contains(fn($t) => in_array($t, ['ppt', 'pptx']));
+                                $hasText = $latestTypes->contains('txt');
+                            @endphp
+
 
                             <div id="filterDropdown"
                                 class="hidden absolute right-0 mt-2 max-h-64 overflow-y-auto w-48 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 z-10 transition-all duration-200">
                                 <ul class="py-2 text-gray-700" id="filterList">
                                     <li>
                                         <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md active"
                                             data-type="all" onclick="filterDocuments('all')">
-                                            Semua Tipe
+                                            Semua
                                         </button>
                                     </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="pdf" onclick="filterDocuments('pdf')">
-                                            PDF
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="doc" onclick="filterDocuments('doc')">
-                                            Word (DOC/DOCX)
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="ppt" onclick="filterDocuments('ppt')">
-                                            PowerPoint
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="xls" onclick="filterDocuments('xls')">
-                                            Excel
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="txt" onclick="filterDocuments('txt')">
-                                            Text Files
-                                        </button>
-                                    </li>
+
+                                    @if ($hasPDF)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="pdf" onclick="filterDocuments('pdf')">
+                                                PDF
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasWord)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="doc" onclick="filterDocuments('doc')">
+                                                Word
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasExcel)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="xls" onclick="filterDocuments('xls')">
+                                                Excel
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasPowerPoint)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="ppt" onclick="filterDocuments('ppt')">
+                                                PowerPoint
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasText)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="txt" onclick="filterDocuments('txt')">
+                                                Text
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    {{-- 🔹 Render format dokumen lainnya yang ada di 8 file terakhir --}}
+                                    @foreach ($latestTypes as $type)
+                                        @php
+                                            $lowerType = strtolower($type);
+                                        @endphp
+                                        @if (!in_array($lowerType, ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt']))
+                                            <li>
+                                                <button
+                                                    class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                    data-type="{{ $lowerType }}" onclick="filterDocuments('{{ $lowerType }}')">
+                                                    {{ strtoupper($type) }}
+                                                </button>
+                                            </li>
+                                        @endif
+                                    @endforeach
                                 </ul>
                             </div>
                         </div>
@@ -799,13 +874,12 @@
     <script>
         // Deklarasi variabel global
         let documents = [];
-        let filteredDocuments = [];
+        let allDocuments = [];
         let currentView = 'grid';
         let currentPage = 1;
         const itemsPerPage = 12;
         let currentSort = { field: 'date', direction: 'desc' };
-        let currentFilter = 'all';
-        let currentSearch = '';
+        let activeFilterType = 'all';
 
         // Variabel untuk fitur berbagi
         let currentFileToShare = null;
@@ -914,37 +988,25 @@
                     return documentTypes.includes(ext);
                 });
 
-                // Inisialisasi filteredDocuments dengan semua dokumen
-                filteredDocuments = [...documents];
-
+                allDocuments = [...documents];
                 updateDocumentStats();
-                sortFiles();
-                renderDocuments();
-                setupPagination();
+                applySearchAndFilter();
             } catch (error) {
                 console.error('Gagal memuat data dokumen:', error);
-            }
-        }
-
-        // Ambil data users untuk fitur berbagi
-        async function fetchUsers() {
-            try {
-                const response = await fetch('/users');
-                if (!response.ok) throw new Error('Failed to fetch users');
-                users = await response.json();
-                filteredUsers = [...users];
-                renderUsersList();
-            } catch (error) {
-                console.error('Error memuat users:', error);
-                // Fallback data jika API tidak tersedia
-                users = [
-                    { id: 1, name: 'Ahmad Wijaya', email: 'ahmad@example.com', avatar: 'AW', color: 'bg-blue-500' },
-                    { id: 2, name: 'Sari Indah', email: 'sari@example.com', avatar: 'SI', color: 'bg-pink-500' },
-                    { id: 3, name: 'Budi Santoso', email: 'budi@example.com', avatar: 'BS', color: 'bg-green-500' },
-                    { id: 4, name: 'Dewi Lestari', email: 'dewi@example.com', avatar: 'DL', color: 'bg-purple-500' }
+                // Fallback data untuk testing
+                documents = [
+                    { name: 'document1.pdf', size: '2.5 MB', date: '2023-10-15', created_at: '2023-10-15T00:00:00Z' },
+                    { name: 'document2.docx', size: '1.8 MB', date: '2023-10-14', created_at: '2023-10-14T00:00:00Z' },
+                    { name: 'spreadsheet1.xlsx', size: '3.2 MB', date: '2023-10-13', created_at: '2023-10-13T00:00:00Z' },
+                    { name: 'presentation1.pptx', size: '4.1 MB', date: '2023-10-12', created_at: '2023-10-12T00:00:00Z' },
+                    { name: 'document3.pdf', size: '2.9 MB', date: '2023-10-11', created_at: '2023-10-11T00:00:00Z' },
+                    { name: 'notes.txt', size: '0.1 MB', date: '2023-10-10', created_at: '2023-10-10T00:00:00Z' },
+                    { name: 'budget.xls', size: '1.5 MB', date: '2023-10-09', created_at: '2023-10-09T00:00:00Z' },
+                    { name: 'report.doc', size: '2.2 MB', date: '2023-10-08', created_at: '2023-10-08T00:00:00Z' }
                 ];
-                filteredUsers = [...users];
-                renderUsersList();
+                allDocuments = [...documents];
+                updateDocumentStats();
+                applySearchAndFilter();
             }
         }
 
@@ -972,9 +1034,36 @@
             document.getElementById('excelCount').textContent = excelCount;
         }
 
+        // Apply search and filter
+        function applySearchAndFilter() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            // Filter dan search pada data asli
+            documents = allDocuments.filter(doc => {
+                const ext = doc.name?.split('.').pop()?.toLowerCase() || '';
+                const name = (doc.name || '').toLowerCase();
+
+                const matchSearch = name.includes(searchValue) || ext.includes(searchValue);
+
+                const matchFilter =
+                    activeFilterType === 'all' ||
+                    ext === activeFilterType ||
+                    (activeFilterType === 'doc' && ['doc', 'docx', 'odt'].includes(ext)) ||
+                    (activeFilterType === 'xls' && ['xls', 'xlsx', 'ods'].includes(ext)) ||
+                    (activeFilterType === 'ppt' && ['ppt', 'pptx', 'odp'].includes(ext));
+
+                return matchSearch && matchFilter;
+            });
+
+            currentPage = 1; // Reset ke halaman pertama
+            sortFiles();
+            renderDocuments();
+            setupPagination();
+        }
+
         // Sort files
         function sortFiles() {
-            filteredDocuments.sort((a, b) => {
+            documents.sort((a, b) => {
                 let aValue = a[currentSort.field];
                 let bValue = b[currentSort.field];
 
@@ -1012,107 +1101,53 @@
                 return value * (units[unit] || 1);
             }
 
-            return 0;
-        }
-
-        // Filter documents by type
-        function filterDocuments(type) {
-            currentFilter = type;
-            currentPage = 1; // Reset ke halaman pertama saat filter berubah
-
-            // Update UI untuk filter aktif
-            document.querySelectorAll('.filter-option').forEach(option => {
-                if (option.dataset.type === type) {
-                    option.classList.add('bg-blue-50', 'text-blue-700');
-                } else {
-                    option.classList.remove('bg-blue-50', 'text-blue-700');
-                }
-            });
-
-            applyFiltersAndSearch();
-        }
-
-        // Apply search filter
-        function applySearch() {
-            currentSearch = document.getElementById('searchInput').value.toLowerCase().trim();
-            currentPage = 1; // Reset ke halaman pertama saat pencarian berubah
-            applyFiltersAndSearch();
-        }
-
-        // Apply both filters and search
-        function applyFiltersAndSearch() {
-            // Filter berdasarkan tipe dokumen
-            if (currentFilter === 'all') {
-                filteredDocuments = [...documents];
-            } else {
-                filteredDocuments = documents.filter(doc => {
-                    const ext = doc.name.split('.').pop().toLowerCase();
-
-                    switch (currentFilter) {
-                        case 'pdf':
-                            return ext === 'pdf';
-                        case 'doc':
-                            return ['doc', 'docx', 'odt'].includes(ext);
-                        case 'ppt':
-                            return ['ppt', 'pptx', 'odp'].includes(ext);
-                        case 'xls':
-                            return ['xls', 'xlsx', 'ods'].includes(ext);
-                        case 'txt':
-                            return ['txt', 'rtf'].includes(ext);
-                        default:
-                            return true;
-                    }
-                });
-            }
-
-            // Filter berdasarkan pencarian
-            if (currentSearch) {
-                filteredDocuments = filteredDocuments.filter(doc =>
-                    doc.name.toLowerCase().includes(currentSearch)
-                );
-            }
-
-            // Sort dan render ulang
-            sortFiles();
-            renderDocuments();
-            setupPagination();
+            return parseFloat(size) || 0;
         }
 
         // Render document cards
         function renderDocuments() {
             const gridView = document.getElementById('gridView');
+            const listView = document.getElementById('listView');
             const fileTableBody = document.getElementById('fileTableBody');
             const emptyState = document.getElementById('emptyState');
+            const pagination = document.getElementById('pagination');
 
             gridView.innerHTML = '';
             fileTableBody.innerHTML = '';
 
-            if (!filteredDocuments || filteredDocuments.length === 0) {
+            if (!documents || documents.length === 0) {
                 emptyState.classList.remove('hidden');
-                document.getElementById('pagination').classList.add('hidden');
+                pagination.classList.add('hidden');
                 return;
             }
 
             emptyState.classList.add('hidden');
-            document.getElementById('pagination').classList.remove('hidden');
+            pagination.classList.remove('hidden');
 
+            // Calculate pagination
             const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = Math.min(startIndex + itemsPerPage, filteredDocuments.length);
-            const paginatedDocuments = filteredDocuments.slice(startIndex, endIndex);
+            const endIndex = Math.min(startIndex + itemsPerPage, documents.length);
+            const paginatedDocuments = documents.slice(startIndex, endIndex);
 
             // Render grid view
             paginatedDocuments.forEach(doc => {
-                const ext = doc.name.split('.').pop().toLowerCase();
+                const ext = doc.name?.split('.').pop()?.toLowerCase();
                 const config = fileConfig[ext] || fileConfig.default;
 
-                const uploadDate = doc.date || (doc.created_at ? new Date(doc.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Tidak diketahui');
+                const uploadDate = doc.date
+                    ? doc.date
+                    : (doc.created_at ? new Date(doc.created_at).toLocaleDateString('id-ID', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    }) : 'Tidak diketahui');
 
-                // Grid card
-                const card = document.createElement('div');
-                card.className = 'file-card bg-white rounded-xl p-4 cursor-pointer hover:shadow-lg transition';
-                card.dataset.name = doc.name;
-                card.dataset.type = ext;
-                card.innerHTML = `
+                // Grid view card
+                const docCard = document.createElement('div');
+                docCard.className = 'file-card bg-white rounded-xl p-4 cursor-pointer hover:shadow-lg transition';
+                docCard.dataset.type = ext;
+                docCard.dataset.name = doc.name;
+                docCard.innerHTML = `
                     <div class="flex justify-between items-start mb-4">
                         <div class="p-3 rounded-xl ${config.color} file-type-icon">
                             <i class="fas fa-${config.icon} text-lg"></i>
@@ -1146,49 +1181,74 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Document Preview -->
                     <div class="document-preview ${config.previewColor} mb-3 text-center">
                         <i class="fas fa-${config.icon} text-3xl mb-2"></i>
                         <div class="text-sm">${ext.toUpperCase()}</div>
                     </div>
-                    <h4 class="font-semibold text-gray-800 mb-2 truncate">${doc.name}</h4>
+                    
+                    <h4 class="font-semibold text-gray-800 mb-2 truncate" title="${doc.name}">
+                        ${doc.name}
+                    </h4>
                     <div class="flex justify-between items-center text-sm text-gray-500 mb-3">
                         <span>${doc.size || '-'}</span>
                         <span>${uploadDate}</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">${config.type}</span>
+                        <span class="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
+                            ${config.type}
+                        </span>
                         <a class="text-gray-400 hover:text-yellow-500 transition-colors favorite-btn">
                             <i class="far fa-star"></i>
                         </a>
                     </div>
                 `;
 
-                card.addEventListener('click', () => showFileDetails(doc));
-                setupFavoriteButton(card, doc);
+                docCard.addEventListener('click', () => showFileDetails(doc));
+                gridView.appendChild(docCard);
 
-                gridView.appendChild(card);
+                // Setup favorite button
+                setupFavoriteButton(docCard, doc);
             });
 
             // Render list view
             paginatedDocuments.forEach(doc => {
-                const ext = doc.name.split('.').pop().toLowerCase();
+                const ext = doc.name?.split('.').pop()?.toLowerCase();
                 const config = fileConfig[ext] || fileConfig.default;
-                const uploadDate = doc.date || (doc.created_at ? new Date(doc.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Tidak diketahui');
 
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-50 transition-colors';
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap flex items-center">
-                        <div class="p-2 rounded-lg ${config.color} mr-3">
-                            <i class="fas fa-${config.icon}"></i>
-                        </div>
-                        <div class="text-sm font-medium text-gray-900 truncate max-w-xs" title="${doc.name}">
-                            ${doc.name}
+                const uploadDate = doc.date
+                    ? doc.date
+                    : (doc.created_at ? new Date(doc.created_at).toLocaleDateString('id-ID', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    }) : 'Tidak diketahui');
+
+                const tableRow = document.createElement('tr');
+                tableRow.className = 'table-row hover:bg-gray-50 transition-colors';
+                tableRow.dataset.type = ext;
+                tableRow.dataset.name = doc.name;
+                tableRow.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="p-2 rounded-lg ${config.color} mr-3">
+                                <i class="fas fa-${config.icon}"></i>
+                            </div>
+                            <div class="text-sm font-medium text-gray-900 truncate max-w-xs" title="${doc.name}">
+                                ${doc.name}
+                            </div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${config.type}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${doc.size || '-'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${uploadDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${config.type}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${doc.size || '-'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${uploadDate}
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div class="flex justify-end space-x-2">
                             <button onclick="showFileDetails('${doc.name}')" class="text-blue-600 hover:text-blue-900 p-1 rounded">
@@ -1203,62 +1263,60 @@
                             <button onclick="confirmDelete('${encodeURIComponent(doc.name)}')" class="text-red-600 hover:text-red-900 p-1 rounded">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
-                            <button class="text-yellow-500 favorite-btn p-1 rounded">
-                                <i class="far fa-star"></i>
-                            </button>
                         </div>
                     </td>
                 `;
 
-                setupFavoriteButton(row, doc);
-                fileTableBody.appendChild(row);
+                fileTableBody.appendChild(tableRow);
             });
 
             // Update pagination info
             document.getElementById('startItem').textContent = startIndex + 1;
             document.getElementById('endItem').textContent = endIndex;
-            document.getElementById('totalItems').textContent = filteredDocuments.length;
+            document.getElementById('totalItems').textContent = documents.length;
         }
 
         // Setup pagination
         function setupPagination() {
-            const totalPages = Math.ceil(filteredDocuments.length / itemsPerPage);
+            const totalPages = Math.ceil(documents.length / itemsPerPage);
             const pageNumbers = document.getElementById('pageNumbers');
+            const prevPage = document.getElementById('prevPage');
+            const nextPage = document.getElementById('nextPage');
+
             pageNumbers.innerHTML = '';
+
+            // Jika tidak ada halaman, sembunyikan pagination
+            if (totalPages <= 1) {
+                document.getElementById('pagination').classList.add('hidden');
+                return;
+            }
 
             // Tampilkan maksimal 5 nomor halaman
             let startPage = Math.max(1, currentPage - 2);
             let endPage = Math.min(totalPages, startPage + 4);
 
-            // Sesuaikan jika kita dekat dengan akhir
+            // Sesuaikan jika di akhir
             if (endPage - startPage < 4) {
                 startPage = Math.max(1, endPage - 4);
             }
 
-            // Tombol halaman pertama jika diperlukan
-            if (startPage > 1) {
-                const firstPageButton = document.createElement('button');
-                firstPageButton.className = 'px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200';
-                firstPageButton.textContent = '1';
-                firstPageButton.addEventListener('click', () => {
-                    currentPage = 1;
+            // Tombol Previous
+            prevPage.disabled = currentPage === 1;
+            prevPage.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
                     renderDocuments();
                     setupPagination();
-                });
-                pageNumbers.appendChild(firstPageButton);
-
-                if (startPage > 2) {
-                    const ellipsis = document.createElement('span');
-                    ellipsis.className = 'px-2 py-2';
-                    ellipsis.textContent = '...';
-                    pageNumbers.appendChild(ellipsis);
                 }
-            }
+            };
 
-            // Tombol halaman
+            // Nomor halaman
             for (let i = startPage; i <= endPage; i++) {
                 const pageButton = document.createElement('button');
-                pageButton.className = `px-3 py-2 rounded-lg ${i === currentPage ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`;
+                pageButton.className = `px-3 py-2 rounded-lg transition-colors ${i === currentPage
+                    ? 'bg-blue-500 text-white font-medium'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`;
                 pageButton.textContent = i;
                 pageButton.addEventListener('click', () => {
                     currentPage = i;
@@ -1268,45 +1326,23 @@
                 pageNumbers.appendChild(pageButton);
             }
 
-            // Tombol halaman terakhir jika diperlukan
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) {
-                    const ellipsis = document.createElement('span');
-                    ellipsis.className = 'px-2 py-2';
-                    ellipsis.textContent = '...';
-                    pageNumbers.appendChild(ellipsis);
-                }
-
-                const lastPageButton = document.createElement('button');
-                lastPageButton.className = 'px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200';
-                lastPageButton.textContent = totalPages;
-                lastPageButton.addEventListener('click', () => {
-                    currentPage = totalPages;
-                    renderDocuments();
-                    setupPagination();
-                });
-                pageNumbers.appendChild(lastPageButton);
-            }
-
-            // Tombol navigasi sebelumnya dan selanjutnya
-            document.getElementById('prevPage').disabled = currentPage === 1;
-            document.getElementById('nextPage').disabled = currentPage === totalPages;
-
-            document.getElementById('prevPage').addEventListener('click', () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderDocuments();
-                    setupPagination();
-                }
-            });
-
-            document.getElementById('nextPage').addEventListener('click', () => {
+            // Tombol Next
+            nextPage.disabled = currentPage === totalPages;
+            nextPage.onclick = () => {
                 if (currentPage < totalPages) {
                     currentPage++;
                     renderDocuments();
                     setupPagination();
                 }
-            });
+            };
+
+            // Update info halaman
+            const startItem = (currentPage - 1) * itemsPerPage + 1;
+            const endItem = Math.min(currentPage * itemsPerPage, documents.length);
+
+            document.getElementById('startItem').textContent = startItem;
+            document.getElementById('endItem').textContent = endItem;
+            document.getElementById('totalItems').textContent = documents.length;
         }
 
         // Setup favorite button
@@ -1322,10 +1358,17 @@
                 localStorage.setItem(localKey, isFavorite);
             }
 
-            updateStarIcon();
+            if (isFavorite === '1') {
+                starIcon.classList.remove('far', 'text-gray-400');
+                starIcon.classList.add('fas', 'text-yellow-500');
+            } else {
+                starIcon.classList.remove('fas', 'text-yellow-500');
+                starIcon.classList.add('far', 'text-gray-400');
+            }
 
-            favoriteBtn.addEventListener('click', e => {
-                e.stopPropagation();
+            favoriteBtn.addEventListener('click', (event) => {
+                event.stopPropagation();
+
                 fetch('/files/toggle-favorite', {
                     method: 'POST',
                     headers: {
@@ -1346,21 +1389,12 @@
                             localStorage.setItem(localKey, '0');
                         }
 
-                        // Reload page after toggle
-                        setTimeout(() => window.location.reload(), 300);
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 300);
                     })
                     .catch(err => console.error('❌ Gagal toggle favorit:', err));
             });
-
-            function updateStarIcon() {
-                if (isFavorite === '1') {
-                    starIcon.classList.remove('far', 'text-gray-400');
-                    starIcon.classList.add('fas', 'text-yellow-500');
-                } else {
-                    starIcon.classList.remove('fas', 'text-yellow-500');
-                    starIcon.classList.add('far', 'text-gray-400');
-                }
-            }
         }
 
         // ==================== FUNGSI BERBAGI FILE ====================
@@ -1560,7 +1594,7 @@
                     icon: 'success'
                 }).then(() => {
                     closeShareModal();
-                    fetchFiles();
+                    fetchDocuments();
                 });
 
             } catch (error) {
@@ -1610,6 +1644,28 @@
             }
         }
 
+        // Ambil data users untuk fitur berbagi
+        async function fetchUsers() {
+            try {
+                const response = await fetch('/users');
+                if (!response.ok) throw new Error('Failed to fetch users');
+                users = await response.json();
+                filteredUsers = [...users];
+                renderUsersList();
+            } catch (error) {
+                console.error('Error memuat users:', error);
+                // Fallback data jika API tidak tersedia
+                users = [
+                    { id: 1, name: 'Ahmad Wijaya', email: 'ahmad@example.com', avatar: 'AW', color: 'bg-blue-500' },
+                    { id: 2, name: 'Sari Indah', email: 'sari@example.com', avatar: 'SI', color: 'bg-pink-500' },
+                    { id: 3, name: 'Budi Santoso', email: 'budi@example.com', avatar: 'BS', color: 'bg-green-500' },
+                    { id: 4, name: 'Dewi Lestari', email: 'dewi@example.com', avatar: 'DL', color: 'bg-purple-500' }
+                ];
+                filteredUsers = [...users];
+                renderUsersList();
+            }
+        }
+
         // ==================== FUNGSI UTILITAS ====================
 
         // Toggle dropdown
@@ -1647,12 +1703,8 @@
 
             const modal = document.getElementById('fileModal');
             const modalContent = document.getElementById('modalContent');
-            const ext = doc.name.split('.').pop().toLowerCase();
+            const ext = doc.name?.split('.').pop()?.toLowerCase();
             const config = fileConfig[ext] || fileConfig.default;
-
-            const uploadDate = doc.date || (doc.created_at
-                ? new Date(doc.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
-                : 'Tidak diketahui');
 
             modalContent.innerHTML = `
                 <div class="flex items-start">
@@ -1673,30 +1725,31 @@
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Ukuran</p>
-                                <p class="font-medium">${doc.size || '-'}</p>
+                                <p class="font-medium">${doc.size}</p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Tanggal Upload</p>
-                                <p class="font-medium">${uploadDate}</p>
+                                <p class="font-medium">${doc.date}</p>
                             </div>
                         </div>
 
                         <div class="mt-6">
                             <p class="text-sm text-gray-500 mb-2">Deskripsi</p>
                             <p class="text-gray-700">
-                                File ${config.type} ini diupload pada ${uploadDate}.
+                                File ${config.type} ini diupload pada ${doc.date}.
                                 ${doc.shared ? 'File ini telah dibagikan.' : 'File ini bersifat pribadi.'}
                             </p>
                         </div>
 
                         <div class="mt-8 flex justify-end space-x-3">
-                            <a href="/storage/uploads/${encodeURIComponent(doc.name)}" download
-                                class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-5 rounded-xl font-medium flex items-center">
+                            <a 
+                                href="/download/${encodeURIComponent(doc.name)}"
+                                class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-5 rounded-xl font-medium transition-colors duration-200 flex items-center">
                                 <i class="fas fa-download mr-2"></i> Unduh
                             </a>
 
                             <button onclick="openShareModal('${doc.name}')"
-                                class="bg-blue-500 hover:bg-blue-600 text-white py-2.5 px-5 rounded-xl font-medium flex items-center">
+                                class="bg-blue-500 hover:bg-blue-600 text-white py-2.5 px-5 rounded-xl font-medium transition-colors duration-200 flex items-center">
                                 <i class="fas fa-share-alt mr-2"></i> Bagikan
                             </button>
                         </div>
@@ -1750,8 +1803,29 @@
 
                 sortFiles();
                 renderDocuments();
+                setupPagination();
             });
         });
+
+        // Filter documents by format - SAMA PERSIS SEPERTI DI ALL-FILE
+        function filterDocuments(type) {
+            activeFilterType = type;
+
+            // Update UI - aktifkan tombol filter yang dipilih
+            document.querySelectorAll('.filter-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === type);
+            });
+
+            document.getElementById('filterDropdown').classList.add('hidden');
+
+            // Simpan filter yang dipilih
+            localStorage.setItem('selectedDocumentType', type);
+
+            applySearchAndFilter();
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', applySearchAndFilter);
 
         // ==================== INISIALISASI ====================
 
@@ -1761,30 +1835,26 @@
             fetchUsers();
             initializeShareModal();
 
-            // Set up search input listener
-            document.getElementById('searchInput').addEventListener('input', applySearch);
-
-            // Set initial filter
-            filterDocuments('all');
+            // Terapkan filter yang disimpan
+            const savedFilter = localStorage.getItem('selectedDocumentType');
+            if (savedFilter) {
+                activeFilterType = savedFilter;
+                document.querySelectorAll('.filter-option').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.type === savedFilter);
+                });
+            }
 
             // Mobile menu toggle
             document.getElementById('mobileMenuBtn').addEventListener('click', () => {
                 document.querySelector('.sidebar').classList.toggle('active');
             });
 
-            // Toggle filter dropdown
-            document.getElementById('filterButton').addEventListener('click', () => {
-                document.getElementById('filterDropdown').classList.toggle('hidden');
-            });
-
             // Close dropdowns when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.dropdown') && !e.target.closest('#filterButton')) {
-                    document.querySelectorAll('.dropdown-content').forEach(dropdown => {
-                        dropdown.classList.add('hidden');
-                    });
-                    document.getElementById('filterDropdown').classList.add('hidden');
-                }
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.dropdown-content').forEach(dropdown => {
+                    dropdown.classList.add('hidden');
+                });
+                document.getElementById('filterDropdown').classList.add('hidden');
             });
 
             // Prevent dropdown close when clicking inside
@@ -1792,6 +1862,11 @@
                 element.addEventListener('click', (e) => {
                     e.stopPropagation();
                 });
+            });
+
+            // Toggle filter dropdown
+            document.getElementById('filterButton').addEventListener('click', () => {
+                document.getElementById('filterDropdown').classList.toggle('hidden');
             });
         });
 

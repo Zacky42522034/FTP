@@ -144,6 +144,56 @@
             color: #3b82f6;
             font-weight: 500;
         }
+
+        /* Modal Share Styles */
+        .fade-in {
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        .slide-down {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .selected-user {
+            background-color: #e0f2fe;
+            border-color: #0ea5e9;
+        }
+
+        /* Scrollbar lembut dan minimalis */
+        #filterDropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #filterDropdown::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.6);
+            border-radius: 3px;
+        }
+
+        #filterDropdown::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(107, 114, 128, 0.8);
+        }
     </style>
 </head>
 
@@ -251,7 +301,7 @@
                         class="ml-auto bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full font-medium">{{ $totalArchives }}</span>
                 </a>
 
-                <a href="#"
+                <a href="/share"
                     class="flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition">
                     <i class="fas fa-share-alt w-5 mr-3"></i>
                     <span>Berbagi</span>
@@ -311,9 +361,6 @@
                 </div>
 
                 <div class="flex items-center space-x-4">
-                    <!-- Search Bar -->
-                   
-
                     <!-- Quick Actions -->
                     <div class="flex space-x-2">
                         <button onclick="window.location.reload()"
@@ -416,57 +463,66 @@
 
                         <!-- Filter Format -->
                         <div class="relative inline-block text-left">
+                            <!-- Tombol Filter -->
                             <button id="filterButton"
                                 class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-4 rounded-xl font-medium transition-colors duration-200 flex items-center">
-                                <i class="fas fa-filter mr-2"></i> Tipe File
+                                <i class="fas fa-filter mr-2"></i> Filter
                                 <i class="fas fa-chevron-down ml-2 text-gray-500"></i>
                             </button>
+
+                            <!-- Dropdown Filter -->
+                            @php
+                                // Ambil 8 file favorit terakhir
+                                $latestFavorites = collect($files)->filter(function($file) {
+                                    $localKey = 'favorite_' . $file['name'];
+                                    $isFavorite = isset($_COOKIE[$localKey]) ? $_COOKIE[$localKey] : 
+                                                (isset($file['favorite']) ? $file['favorite'] : '0');
+                                    return $isFavorite === '1';
+                                })->sortByDesc('created_at')->take(8);
+
+                                // Ambil tipe dari 8 file favorit terakhir saja
+                                $latestTypes = $latestFavorites->pluck('type')->unique()->values();
+
+                                // Cek apakah ada gambar di antara 8 file terakhir
+                                $hasImage = $latestTypes->contains(function ($type) {
+                                    return in_array(strtolower($type), ['jpg', 'jpeg', 'png']);
+                                });
+                            @endphp
 
                             <div id="filterDropdown"
                                 class="hidden absolute right-0 mt-2 max-h-64 overflow-y-auto w-48 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 z-10 transition-all duration-200">
                                 <ul class="py-2 text-gray-700" id="filterList">
                                     <li>
                                         <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md active"
                                             data-type="all" onclick="filterFavorites('all')">
-                                            Semua Tipe
+                                            Semua
                                         </button>
                                     </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="image" onclick="filterFavorites('image')">
-                                            Gambar
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="document" onclick="filterFavorites('document')">
-                                            Dokumen
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="video" onclick="filterFavorites('video')">
-                                            Video
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="audio" onclick="filterFavorites('audio')">
-                                            Audio
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="archive" onclick="filterFavorites('archive')">
-                                            Archive
-                                        </button>
-                                    </li>
+
+                                    @if ($hasImage)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="gambar" onclick="filterFavorites('gambar')">
+                                                Gambar
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    {{-- 🔹 Render hanya 8 tipe terakhir --}}
+                                    @foreach ($latestTypes as $type)
+                                        @if (!in_array(strtolower($type), ['jpg', 'jpeg', 'png']))
+                                            <li>
+                                                <button
+                                                    class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                    data-type="{{ strtolower($type) }}"
+                                                    onclick="filterFavorites('{{ strtolower($type) }}')">
+                                                    {{ strtoupper($type) }}
+                                                </button>
+                                            </li>
+                                        @endif
+                                    @endforeach
                                 </ul>
                             </div>
                         </div>
@@ -584,6 +640,94 @@
         </div>
     </div>
 
+    <!-- Share Modal -->
+    <div id="shareModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden transition-opacity duration-300">
+        <div
+            class="modal-box bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 transform transition-all duration-300 slide-down">
+
+            <!-- HEADER -->
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">Bagikan File</h3>
+                    <p class="text-sm text-gray-500 mt-1">Pilih penerima untuk berbagi</p>
+                </div>
+                <button
+                    class="close-share-modal text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- BODY -->
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- KIRI: File + Search + Users -->
+                <div class="space-y-6">
+                    <!-- FILE INFO -->
+                    <div>
+                        <h4 class="font-medium text-gray-700 mb-2">File yang akan dibagikan:</h4>
+                        <div id="sharedFileInfo" class="bg-gray-50 p-3 rounded-lg flex items-center">
+                            <i class="fas fa-star text-yellow-500 mr-3"></i>
+                            <span id="sharedFileName" class="font-medium">Nama File</span>
+                        </div>
+                    </div>
+
+                    <!-- SEARCH -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-search mr-2 text-gray-500"></i>Cari Penerima
+                        </label>
+                        <div class="relative">
+                            <input type="text"
+                                class="search-users w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                placeholder="Cari nama atau email...">
+                            <button type="button"
+                                class="clear-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 hidden">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- USER LIST -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-users mr-2 text-gray-500"></i>Pilih Penerima
+                        </label>
+                        <div class="border border-gray-300 rounded-xl max-h-64 overflow-y-auto">
+                            <div class="users-list divide-y divide-gray-200"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KANAN: Selected Users -->
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-user-check mr-2 text-gray-500"></i>
+                            Penerima Dipilih <span class="selected-count text-blue-500 ml-1">(0)</span>
+                        </label>
+                        <div
+                            class="selected-users flex flex-wrap gap-2 min-h-12 p-3 border border-gray-300 rounded-xl bg-gray-50">
+                            <p class="placeholder text-gray-500 text-sm py-2 px-3">Belum ada penerima dipilih</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER BUTTONS -->
+            <div class="px-6 pb-6 flex space-x-3">
+                <button type="button"
+                    class="cancel-share flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-xl font-medium transition-colors">
+                    Batal
+                </button>
+                <button type="button"
+                    class="share-button flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl font-medium flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled>
+                    <i class="fas fa-share-alt mr-2"></i>Bagikan
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="settingsModal"
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden transition-opacity">
 
@@ -683,66 +827,341 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         let favorites = [];
-        let filteredFavorites = [];
+        let allFavorites = [];
         let currentView = 'grid';
         let currentPage = 1;
         const itemsPerPage = 12;
         let currentSort = { field: 'date', direction: 'desc' };
-        let currentFilter = 'all';
-        let currentSearch = '';
+        let activeFilterType = 'all';
+
+        // Variabel untuk fitur berbagi
+        let currentFileToShare = null;
+        let users = [];
+        let selectedUsers = [];
+        let filteredUsers = [];
 
         // File type icons and colors
-       const fileConfig = {
-    pdf: { icon: 'file-pdf', color: 'text-red-500 bg-red-100', type: 'Dokumen PDF', category: 'document' },
-    ppt: { icon: 'file-powerpoint', color: 'text-orange-500 bg-orange-100', type: 'Presentasi', category: 'document' },
-    pptx: { icon: 'file-powerpoint', color: 'text-orange-500 bg-orange-100', type: 'Presentasi', category: 'document' },
-    doc: { icon: 'file-word', color: 'text-blue-500 bg-blue-100', type: 'Dokumen Word', category: 'document' },
-    docx: { icon: 'file-word', color: 'text-blue-500 bg-blue-100', type: 'Dokumen Word', category: 'document' },
-    xls: { icon: 'file-excel', color: 'text-green-500 bg-green-100', type: 'Spreadsheet', category: 'document' },
-    xlsx: { icon: 'file-excel', color: 'text-green-500 bg-green-100', type: 'Spreadsheet', category: 'document' },
+        const fileConfig = {
+            pdf: { icon: 'file-pdf', color: 'text-red-500 bg-red-100', type: 'Dokumen PDF', category: 'document' },
+            ppt: { icon: 'file-powerpoint', color: 'text-orange-500 bg-orange-100', type: 'Presentasi', category: 'document' },
+            pptx: { icon: 'file-powerpoint', color: 'text-orange-500 bg-orange-100', type: 'Presentasi', category: 'document' },
+            doc: { icon: 'file-word', color: 'text-blue-500 bg-blue-100', type: 'Dokumen Word', category: 'document' },
+            docx: { icon: 'file-word', color: 'text-blue-500 bg-blue-100', type: 'Dokumen Word', category: 'document' },
+            xls: { icon: 'file-excel', color: 'text-green-500 bg-green-100', type: 'Spreadsheet', category: 'document' },
+            xlsx: { icon: 'file-excel', color: 'text-green-500 bg-green-100', type: 'Spreadsheet', category: 'document' },
 
-    // IMAGE
-    jpg: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar', category: 'image' },
-    jpeg: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar', category: 'image' },
-    png: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar', category: 'image' },
-    gif: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar', category: 'image' },
-    svg: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar', category: 'image' },
-    webp: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar', category: 'image' },
+            // IMAGE
+            jpg: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar', category: 'image' },
+            jpeg: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar', category: 'image' },
+            png: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar', category: 'image' },
+            gif: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar', category: 'image' },
+            svg: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar', category: 'image' },
+            webp: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar', category: 'image' },
 
-    // VIDEO
-    mp4: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video', category: 'video' },
-    mov: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video', category: 'video' },
-    avi: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video', category: 'video' },
-    mkv: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video', category: 'video' },
-    wmv: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video', category: 'video' },
-    webm: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video', category: 'video' },
+            // VIDEO
+            mp4: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video', category: 'video' },
+            mov: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video', category: 'video' },
+            avi: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video', category: 'video' },
+            mkv: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video', category: 'video' },
+            wmv: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video', category: 'video' },
+            webm: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video', category: 'video' },
 
-    // AUDIO
-    mp3: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio', category: 'audio' },
-    wav: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio', category: 'audio' },
-    flac: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio', category: 'audio' },
-    aac: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio', category: 'audio' },
-    ogg: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio', category: 'audio' },
-    mp4a: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio', category: 'audio' },
+            // AUDIO
+            mp3: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio', category: 'audio' },
+            wav: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio', category: 'audio' },
+            flac: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio', category: 'audio' },
+            aac: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio', category: 'audio' },
+            ogg: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio', category: 'audio' },
+            mp4a: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio', category: 'audio' },
 
-    // ARCHIVE
-    zip: { icon: 'file-archive', color: 'text-orange-600 bg-orange-100', type: 'Archive', category: 'archive' },
-    rar: { icon: 'file-archive', color: 'text-orange-700 bg-orange-100', type: 'Archive', category: 'archive' },
-    '7z': { icon: 'file-archive', color: 'text-orange-800 bg-orange-100', type: 'Archive', category: 'archive' },
-    tar: { icon: 'file-archive', color: 'text-orange-700 bg-orange-100', type: 'Archive', category: 'archive' },
-    gz: { icon: 'file-archive', color: 'text-orange-700 bg-orange-100', type: 'Archive', category: 'archive' },
+            // ARCHIVE
+            zip: { icon: 'file-archive', color: 'text-orange-600 bg-orange-100', type: 'Archive', category: 'archive' },
+            rar: { icon: 'file-archive', color: 'text-orange-700 bg-orange-100', type: 'Archive', category: 'archive' },
+            '7z': { icon: 'file-archive', color: 'text-orange-800 bg-orange-100', type: 'Archive', category: 'archive' },
+            tar: { icon: 'file-archive', color: 'text-orange-700 bg-orange-100', type: 'Archive', category: 'archive' },
+            gz: { icon: 'file-archive', color: 'text-orange-700 bg-orange-100', type: 'Archive', category: 'archive' },
 
-    // TEXT
-    txt: { icon: 'file-alt', color: 'text-gray-500 bg-gray-100', type: 'Teks', category: 'document' },
+            // TEXT
+            txt: { icon: 'file-alt', color: 'text-gray-500 bg-gray-100', type: 'Teks', category: 'document' },
 
-    // MAP
-    kml: { icon: 'map-marked-alt', color: 'text-blue-500 bg-blue-100', type: 'Peta KML', category: 'map' },
-    kmz: { icon: 'layer-group', color: 'text-purple-500 bg-purple-100', type: 'Peta KMZ', category: 'map' },
+            // MAP
+            kml: { icon: 'map-marked-alt', color: 'text-blue-500 bg-blue-100', type: 'Peta KML', category: 'map' },
+            kmz: { icon: 'layer-group', color: 'text-purple-500 bg-purple-100', type: 'Peta KMZ', category: 'map' },
 
-    // DEFAULT
-    default: { icon: 'file', color: 'text-gray-500 bg-gray-100', type: 'File', category: 'other' },
-};
+            // DEFAULT
+            default: { icon: 'file', color: 'text-gray-500 bg-gray-100', type: 'File', category: 'other' },
+        };
 
+        // ==================== FUNGSI BERBAGI FILE ====================
+
+        // Fungsi untuk membuka modal berbagi
+        function openShareModal(fileName) {
+            currentFileToShare = fileName;
+            const modal = document.getElementById('shareModal');
+            const fileNameElement = document.getElementById('sharedFileName');
+
+            fileNameElement.textContent = fileName;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            // Reset dan render ulang daftar pengguna
+            selectedUsers = [];
+            filteredUsers = [...users];
+            renderUsersList();
+            renderSelectedUsers();
+            updateShareButton();
+
+            setTimeout(() => {
+                const searchInput = document.querySelector('.search-users');
+                if (searchInput) searchInput.focus();
+            }, 300);
+        }
+
+        // Fungsi untuk menutup modal berbagi
+        function closeShareModal() {
+            const modal = document.getElementById('shareModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            resetShareForm();
+        }
+
+        // Fungsi untuk merender daftar pengguna
+        function renderUsersList() {
+            const usersList = document.querySelector('.users-list');
+            if (!usersList) return;
+
+            usersList.innerHTML = '';
+
+            if (filteredUsers.length === 0) {
+                usersList.innerHTML = `
+                    <div class="p-4 text-center text-gray-500">
+                        <i class="fas fa-user-slash text-2xl mb-2"></i>
+                        <p>Tidak ada pengguna</p>
+                    </div>`;
+                return;
+            }
+
+            filteredUsers.forEach(user => {
+                const isSelected = selectedUsers.some(u => u.id === user.id);
+
+                const div = document.createElement('div');
+                div.className = `
+                    p-3 cursor-pointer transition-all duration-200 
+                    ${isSelected ? 'selected-user bg-blue-50' : 'hover:bg-gray-50'}
+                `;
+
+                div.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 
+                            ${user.color || 'bg-blue-500'} 
+                            rounded-full flex items-center justify-center 
+                            text-white font-medium mr-3">
+                            ${user.avatar || user.name.substring(0, 2).toUpperCase()}
+                        </div>
+
+                        <div class="flex-1">
+                            <div class="font-medium">${user.name}</div>
+                            <div class="text-sm text-gray-500">${user.email}</div>
+                        </div>
+
+                        <div class="w-5 h-5 rounded-full border-2 
+                            ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300'} 
+                            flex items-center justify-center">
+                            ${isSelected ? '<i class="fas fa-check text-white text-xs"></i>' : ''}
+                        </div>
+                    </div>
+                `;
+
+                div.addEventListener('click', () => toggleUser(user));
+                usersList.appendChild(div);
+            });
+        }
+
+        // Fungsi untuk toggle pemilihan pengguna
+        function toggleUser(user) {
+            const index = selectedUsers.findIndex(u => u.id === user.id);
+            if (index === -1) {
+                selectedUsers.push(user);
+            } else {
+                selectedUsers.splice(index, 1);
+            }
+            renderUsersList();
+            renderSelectedUsers();
+            updateShareButton();
+        }
+
+        // Fungsi untuk merender pengguna yang dipilih
+        function renderSelectedUsers() {
+            const selectedUsersBox = document.querySelector('.selected-users');
+            const selectedCount = document.querySelector('.selected-count');
+
+            if (!selectedUsersBox || !selectedCount) return;
+
+            selectedUsersBox.innerHTML = '';
+            selectedCount.textContent = `(${selectedUsers.length})`;
+
+            if (selectedUsers.length === 0) {
+                selectedUsersBox.innerHTML = '<p class="placeholder text-gray-500 text-sm py-2 px-3">Belum ada penerima dipilih</p>';
+                return;
+            }
+
+            selectedUsers.forEach(user => {
+                const chip = document.createElement('div');
+                chip.className = 'bg-blue-100 text-blue-800 rounded-full py-1 px-3 text-sm flex items-center';
+                chip.innerHTML = `
+                    <span>${user.name}</span>
+                    <button class="ml-2 text-blue-600 hover:text-blue-800">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                `;
+                chip.querySelector('button').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleUser(user);
+                });
+                selectedUsersBox.appendChild(chip);
+            });
+        }
+
+        // Fungsi untuk update tombol berbagi
+        function updateShareButton() {
+            const shareButton = document.querySelector('.share-button');
+            if (shareButton) {
+                shareButton.disabled = selectedUsers.length === 0;
+            }
+        }
+
+        // Fungsi untuk reset form berbagi
+        function resetShareForm() {
+            selectedUsers = [];
+            filteredUsers = [...users];
+            const searchInput = document.querySelector('.search-users');
+            if (searchInput) searchInput.value = '';
+            const clearSearch = document.querySelector('.clear-search');
+            if (clearSearch) clearSearch.classList.add('hidden');
+            renderUsersList();
+            renderSelectedUsers();
+            updateShareButton();
+        }
+
+        // Fungsi untuk menangani proses berbagi
+        async function handleShare() {
+            if (selectedUsers.length === 0) {
+                Swal.fire('Peringatan', 'Pilih setidaknya satu penerima.', 'warning');
+                return;
+            }
+
+            if (!currentFileToShare) {
+                Swal.fire('Peringatan', 'Nama file tidak ditemukan.', 'warning');
+                return;
+            }
+
+            try {
+                const recipients = selectedUsers.map(u => u.email); // ambil email penerima
+                const recipientsString = recipients[0]; // untuk sementara ambil 1 dulu
+
+                const response = await fetch('/files/share', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        files: [
+                            {
+                                name: currentFileToShare,
+                                size: "0 MB" // bisa diubah sesuai data asli
+                            }
+                        ],
+                        to_email: recipientsString
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    Swal.fire('Error', data.error || 'Gagal membagikan file', 'error');
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: `File "${currentFileToShare}" telah dibagikan kepada ${recipientsString}`,
+                    icon: 'success'
+                }).then(() => {
+                    closeShareModal();
+                    fetchFavorites();
+                });
+
+            } catch (error) {
+                console.error('Error sharing file:', error);
+                Swal.fire('Error', 'Gagal membagikan file', 'error');
+            }
+        }
+
+        // Inisialisasi event listeners untuk modal berbagi
+        function initializeShareModal() {
+            const closeShareBtn = document.querySelector('.close-share-modal');
+            const cancelShareBtn = document.querySelector('.cancel-share');
+            const shareBtn = document.querySelector('.share-button');
+            const searchInput = document.querySelector('.search-users');
+            const clearSearch = document.querySelector('.clear-search');
+
+            if (closeShareBtn) closeShareBtn.addEventListener('click', closeShareModal);
+            if (cancelShareBtn) cancelShareBtn.addEventListener('click', closeShareModal);
+            if (shareBtn) shareBtn.addEventListener('click', handleShare);
+
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    const term = searchInput.value.toLowerCase();
+                    if (clearSearch) clearSearch.classList.toggle('hidden', term.length === 0);
+                    filteredUsers = users.filter(user =>
+                        user.name.toLowerCase().includes(term) ||
+                        user.email.toLowerCase().includes(term)
+                    );
+                    renderUsersList();
+                });
+            }
+
+            if (clearSearch) {
+                clearSearch.addEventListener('click', () => {
+                    if (searchInput) searchInput.value = '';
+                    clearSearch.classList.add('hidden');
+                    filteredUsers = [...users];
+                    renderUsersList();
+                });
+            }
+
+            const shareModal = document.getElementById('shareModal');
+            if (shareModal) {
+                shareModal.addEventListener('click', (e) => {
+                    if (e.target === shareModal) closeShareModal();
+                });
+            }
+        }
+
+        // Ambil data users untuk fitur berbagi
+        async function fetchUsers() {
+            try {
+                const response = await fetch('/users');
+                if (!response.ok) throw new Error('Failed to fetch users');
+                users = await response.json();
+                filteredUsers = [...users];
+                renderUsersList();
+            } catch (error) {
+                console.error('Error memuat users:', error);
+                // Fallback data jika API tidak tersedia
+                users = [
+                    { id: 1, name: 'Ahmad Wijaya', email: 'ahmad@example.com', avatar: 'AW', color: 'bg-blue-500' },
+                    { id: 2, name: 'Sari Indah', email: 'sari@example.com', avatar: 'SI', color: 'bg-pink-500' },
+                    { id: 3, name: 'Budi Santoso', email: 'budi@example.com', avatar: 'BS', color: 'bg-green-500' },
+                    { id: 4, name: 'Dewi Lestari', email: 'dewi@example.com', avatar: 'DL', color: 'bg-purple-500' }
+                ];
+                filteredUsers = [...users];
+                renderUsersList();
+            }
+        }
+
+        // ==================== FUNGSI UTAMA FAVORITES ====================
 
         // Ambil data file favorit dari backend Laravel
         async function fetchFavorites() {
@@ -757,8 +1176,8 @@
                     return isFavorite === '1' || file.favorite === '1' || file.favorite === 1;
                 });
 
-                // Inisialisasi filteredFavorites dengan semua favorit
-                filteredFavorites = [...favorites];
+                // Inisialisasi allFavorites dengan semua favorit
+                allFavorites = [...favorites];
                 
                 updateFavoritesStats();
                 sortFiles();
@@ -795,7 +1214,7 @@
 
         // Sort files
         function sortFiles() {
-            filteredFavorites.sort((a, b) => {
+            favorites.sort((a, b) => {
                 let aValue = a[currentSort.field];
                 let bValue = b[currentSort.field];
 
@@ -838,50 +1257,39 @@
 
         // Filter favorites by type
         function filterFavorites(type) {
-            currentFilter = type;
-            currentPage = 1; // Reset ke halaman pertama saat filter berubah
-            
-            // Update UI untuk filter aktif
-            document.querySelectorAll('.filter-option').forEach(option => {
-                if (option.dataset.type === type) {
-                    option.classList.add('bg-blue-50', 'text-blue-700');
-                } else {
-                    option.classList.remove('bg-blue-50', 'text-blue-700');
-                }
+            activeFilterType = type;
+            localStorage.setItem('selectedFileType', type);
+
+            // Update UI
+            document.querySelectorAll('.filter-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === type);
             });
-            
-            applyFiltersAndSearch();
+
+            document.getElementById('filterDropdown').classList.add('hidden');
+            applySearchAndFilter();
         }
 
-        // Apply search filter
-        function applySearch() {
-            currentSearch = document.getElementById('searchInput').value.toLowerCase().trim();
-            currentPage = 1; // Reset ke halaman pertama saat pencarian berubah
-            applyFiltersAndSearch();
-        }
+        // Apply search and filter
+        function applySearchAndFilter() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase().trim();
 
-        // Apply both filters and search
-        function applyFiltersAndSearch() {
-            // Filter berdasarkan kategori
-            if (currentFilter === 'all') {
-                filteredFavorites = [...favorites];
-            } else {
-                filteredFavorites = favorites.filter(fav => {
-                    const ext = fav.name.split('.').pop().toLowerCase();
-                    const config = fileConfig[ext] || fileConfig.default;
-                    
-                    return config.category === currentFilter;
-                });
-            }
-            
-            // Filter berdasarkan pencarian
-            if (currentSearch) {
-                filteredFavorites = filteredFavorites.filter(fav => 
-                    fav.name.toLowerCase().includes(currentSearch)
-                );
-            }
-            
-            // Sort dan render ulang
+            // Filter dan search pada data asli
+            favorites = allFavorites.filter(file => {
+                const ext = file.name?.split('.').pop()?.toLowerCase() || '';
+                const type = file.type?.toLowerCase() || ext;
+                const name = (file.name || '').toLowerCase();
+
+                const matchSearch = name.includes(searchValue) || type.includes(searchValue);
+
+                const matchFilter =
+                    activeFilterType === 'all' ||
+                    type === activeFilterType ||
+                    (activeFilterType === 'gambar' && ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(ext));
+
+                return matchSearch && matchFilter;
+            });
+
+            currentPage = 1; // Reset ke halaman pertama
             sortFiles();
             renderFavorites();
             setupPagination();
@@ -896,7 +1304,7 @@
             gridView.innerHTML = '';
             fileTableBody.innerHTML = '';
 
-            if (!filteredFavorites || filteredFavorites.length === 0) {
+            if (!favorites || favorites.length === 0) {
                 emptyState.classList.remove('hidden');
                 document.getElementById('pagination').classList.add('hidden');
                 return;
@@ -906,11 +1314,11 @@
             document.getElementById('pagination').classList.remove('hidden');
 
             const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = Math.min(startIndex + itemsPerPage, filteredFavorites.length);
-            const paginatedFavorites = filteredFavorites.slice(startIndex, endIndex);
+            const endIndex = Math.min(startIndex + itemsPerPage, favorites.length);
+            const paginatedFavorites = favorites.slice(startIndex, endIndex);
 
             // Render grid view
-            paginatedFavorites.forEach(fav => {
+            paginatedFavorites.forEach((fav, index) => {
                 const ext = fav.name.split('.').pop().toLowerCase();
                 const config = fileConfig[ext] || fileConfig.default;
 
@@ -921,60 +1329,113 @@
                 card.className = 'file-card bg-white rounded-xl p-4 cursor-pointer hover:shadow-lg transition';
                 card.dataset.name = fav.name;
                 card.dataset.type = ext;
+                
+                // Event handler untuk card (membuka detail saat klik di area card)
+                card.addEventListener('click', (e) => {
+                    // Hanya buka detail jika tidak mengklik tombol dropdown atau aksi lainnya
+                    if (!e.target.closest('.dropdown') && !e.target.closest('.favorite-btn')) {
+                        showFileDetails(fav);
+                    }
+                });
+
                 card.innerHTML = `
-            <div class="flex justify-between items-start mb-4">
-                <div class="p-3 rounded-xl ${config.color} file-type-icon">
-                    <i class="fas fa-${config.icon} text-lg"></i>
-                </div>
-                <div class="relative dropdown">
-                    <button  type="button"
-        onclick="event.stopPropagation()" class="dropdown-toggle text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
-                    <div class="dropdown-content bg-white rounded-xl shadow-lg border border-gray-200 py-2 w-48 hidden absolute right-0 z-10">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 detail-btn">
-                            <i class="fas fa-info-circle mr-2"></i> Detail
-                        </a>
-                        <a href="/storage/uploads/${encodeURIComponent(fav.name)}" download class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            <i class="fas fa-download mr-2"></i> Unduh
-                        </a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            <i class="fas fa-share-alt mr-2"></i> Bagikan
-                        </a>
-                        <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 delete-btn">
-                            <i class="fas fa-trash-alt mr-2"></i> Hapus
-                        </a>
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-xl ${config.color} file-type-icon">
+                            <i class="fas fa-${config.icon} text-lg"></i>
+                        </div>
+                        <div class="relative dropdown">
+                            <button type="button"
+                                class="dropdown-toggle text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <div class="dropdown-content bg-white rounded-xl shadow-lg border border-gray-200 py-2 w-48 hidden absolute right-0 z-10">
+                                <button type="button" 
+                                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 favorite-detail-btn">
+                                    <i class="fas fa-info-circle mr-2"></i> Detail
+                                </button>
+                                <a href="/storage/uploads/${encodeURIComponent(fav.name)}" 
+                                download 
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                onclick="event.stopPropagation()">
+                                    <i class="fas fa-download mr-2"></i> Unduh
+                                </a>
+                                <button type="button" 
+                                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 favorite-share-btn">
+                                    <i class="fas fa-share-alt mr-2"></i> Bagikan
+                                </button>
+                                <button type="button" 
+                                    class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 favorite-delete-btn">
+                                    <i class="fas fa-trash-alt mr-2"></i> Hapus
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            <div class="favorite-preview mb-3 text-center">
-                <i class="fas fa-${config.icon} text-3xl mb-2 star-glow"></i>
-                <div class="text-sm">${ext.toUpperCase()}</div>
-            </div>
-            <h4 class="font-semibold text-gray-800 mb-2 truncate">${fav.name}</h4>
-            <div class="flex justify-between items-center text-sm text-gray-500 mb-3">
-                <span>${fav.size || '-'}</span>
-                <span>${uploadDate}</span>
-            </div>
-            <div class="flex justify-between items-center">
-                <span class="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">${config.type}</span>
-                <a class="text-yellow-500 hover:text-yellow-600 transition-colors favorite-btn">
-                    <i class="fas fa-star star-glow"></i>
-                </a>
-            </div>
-        `;
+                    <div class="favorite-preview mb-3 text-center">
+                        <i class="fas fa-${config.icon} text-3xl mb-2 star-glow"></i>
+                        <div class="text-sm">${ext.toUpperCase()}</div>
+                    </div>
+                    <h4 class="font-semibold text-gray-800 mb-2 truncate">${fav.name}</h4>
+                    <div class="flex justify-between items-center text-sm text-gray-500 mb-3">
+                        <span>${fav.size || '-'}</span>
+                        <span>${uploadDate}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">${config.type}</span>
+                        <button class="text-yellow-500 hover:text-yellow-600 transition-colors favorite-btn">
+                            <i class="fas fa-star star-glow"></i>
+                        </button>
+                    </div>
+                `;
 
-                // Event listeners
-                card.querySelector('.detail-btn').addEventListener('click', e => { e.stopPropagation(); showFileDetails(fav); });
-                card.querySelector('.delete-btn').addEventListener('click', e => { e.stopPropagation(); confirmDelete(fav.name); });
-                card.querySelector('.favorite-btn').addEventListener('click', e => { e.stopPropagation(); removeFromFavorites(fav); });
+                // Event listeners untuk tombol dropdown
+                const detailBtn = card.querySelector('.favorite-detail-btn');
+                const shareBtn = card.querySelector('.favorite-share-btn');
+                const deleteBtn = card.querySelector('.favorite-delete-btn');
+                const favoriteBtn = card.querySelector('.favorite-btn');
+                const dropdownToggle = card.querySelector('.dropdown-toggle');
 
-                card.addEventListener('click', () => showFileDetails(fav));
+                // Detail button
+                detailBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showFileDetails(fav);
+                });
+
+                // Share button
+                shareBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openShareModal(fav.name);
+                    // Tutup dropdown setelah memilih opsi
+                    const dropdown = card.querySelector('.dropdown-content');
+                    dropdown.classList.add('hidden');
+                });
+
+                // Delete button
+                deleteBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    confirmDelete(fav.name);
+                });
+
+                // Favorite button
+                favoriteBtn.addEventListener('click', e => { 
+                    e.stopPropagation(); 
+                    removeFromFavorites(fav); 
+                });
+
+                // Dropdown toggle
+                dropdownToggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleDropdown(dropdownToggle);
+                });
+
                 gridView.appendChild(card);
             });
 
             // Render list view
-            paginatedFavorites.forEach(fav => {
+            paginatedFavorites.forEach((fav, index) => {
                 const ext = fav.name.split('.').pop().toLowerCase();
                 const config = fileConfig[ext] || fileConfig.default;
                 const uploadDate = fav.date || (fav.created_at ? new Date(fav.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Tidak diketahui');
@@ -982,41 +1443,63 @@
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-50 transition-colors';
                 row.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap flex items-center">
-                <div class="p-2 rounded-lg ${config.color} mr-3">
-                    <i class="fas fa-${config.icon}"></i>
-                </div>
-                <div class="text-sm font-medium text-gray-900 truncate max-w-xs" title="${fav.name}">
-                    ${fav.name}
-                </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${config.type}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${fav.size || '-'}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${uploadDate}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div class="flex justify-end space-x-2">
-                    <button class="text-blue-600 hover:text-blue-900 p-1 rounded detail-btn">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
-                    <a href="/storage/uploads/${encodeURIComponent(fav.name)}" download class="text-green-600 hover:text-green-900 p-1 rounded">
-                        <i class="fas fa-download"></i>
-                    </a>
-                    <button class="text-purple-600 hover:text-purple-900 p-1 rounded">
-                        <i class="fas fa-share-alt"></i>
-                    </button>
-                    <button class="text-red-600 hover:text-red-900 p-1 rounded delete-btn">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                    <button class="text-yellow-500 favorite-btn p-1 rounded">
-                        <i class="fas fa-star star-glow"></i>
-                    </button>
-                </div>
-            </td>
-        `;
+                    <td class="px-6 py-4 whitespace-nowrap flex items-center">
+                        <div class="p-2 rounded-lg ${config.color} mr-3">
+                            <i class="fas fa-${config.icon}"></i>
+                        </div>
+                        <div class="text-sm font-medium text-gray-900 truncate max-w-xs" title="${fav.name}">
+                            ${fav.name}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${config.type}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${fav.size || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${uploadDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex justify-end space-x-2">
+                            <button class="text-blue-600 hover:text-blue-900 p-1 rounded list-detail-btn">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                            <a href="/storage/uploads/${encodeURIComponent(fav.name)}" download class="text-green-600 hover:text-green-900 p-1 rounded">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            <button class="text-purple-600 hover:text-purple-900 p-1 rounded list-share-btn">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                            <button class="text-red-600 hover:text-red-900 p-1 rounded list-delete-btn">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                            <button class="text-yellow-500 favorite-btn p-1 rounded">
+                                <i class="fas fa-star star-glow"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
 
-                row.querySelector('.detail-btn').addEventListener('click', e => { e.stopPropagation(); showFileDetails(fav); });
-                row.querySelector('.delete-btn').addEventListener('click', e => { e.stopPropagation(); confirmDelete(fav.name); });
-                row.querySelector('.favorite-btn').addEventListener('click', e => { e.stopPropagation(); removeFromFavorites(fav); });
+                // Event listeners untuk list view
+                const detailBtn = row.querySelector('.list-detail-btn');
+                const shareBtn = row.querySelector('.list-share-btn');
+                const deleteBtn = row.querySelector('.list-delete-btn');
+                const favoriteBtn = row.querySelector('.favorite-btn');
+
+                detailBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showFileDetails(fav);
+                });
+
+                shareBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openShareModal(fav.name);
+                });
+
+                deleteBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    confirmDelete(fav.name);
+                });
+
+                favoriteBtn.addEventListener('click', e => { 
+                    e.preventDefault();
+                    removeFromFavorites(fav); 
+                });
 
                 fileTableBody.appendChild(row);
             });
@@ -1024,12 +1507,12 @@
             // Update pagination info
             document.getElementById('startItem').textContent = startIndex + 1;
             document.getElementById('endItem').textContent = endIndex;
-            document.getElementById('totalItems').textContent = filteredFavorites.length;
+            document.getElementById('totalItems').textContent = favorites.length;
         }
 
         // Setup pagination
         function setupPagination() {
-            const totalPages = Math.ceil(filteredFavorites.length / itemsPerPage);
+            const totalPages = Math.ceil(favorites.length / itemsPerPage);
             const pageNumbers = document.getElementById('pageNumbers');
             pageNumbers.innerHTML = '';
 
@@ -1174,11 +1657,19 @@
         // Toggle dropdown
         function toggleDropdown(button) {
             const dropdown = button.nextElementSibling;
-            dropdown.classList.toggle('hidden');
+            const isHidden = dropdown.classList.contains('hidden');
 
+            // Hide all other dropdowns
             document.querySelectorAll('.dropdown-content').forEach(other => {
-                if (other !== dropdown) other.classList.add('hidden');
+                other.classList.add('hidden');
             });
+
+            // Toggle current dropdown
+            if (isHidden) {
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.classList.add('hidden');
+            }
         }
 
         // Confirm delete
@@ -1211,59 +1702,59 @@
                 : 'Tidak diketahui');
 
             modalContent.innerHTML = `
-        <div class="flex items-start">
-            <div class="p-4 rounded-2xl ${config.color} mr-5 file-type-icon">
-                <i class="fas fa-${config.icon} text-3xl"></i>
-            </div>
-            <div class="flex-1">
-                <h4 class="text-xl font-bold text-gray-800 mb-2">${file.name}</h4>
-                <div class="flex items-center mb-4">
-                    <span class="bg-yellow-100 text-yellow-800 text-xs px-2.5 py-1 rounded-full font-medium">
-                        <i class="fas fa-star mr-1"></i> Favorit
-                    </span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 mt-4">
-                    <div>
-                        <p class="text-sm text-gray-500">Tipe File</p>
-                        <p class="font-medium">${config.type}</p>
+                <div class="flex items-start">
+                    <div class="p-4 rounded-2xl ${config.color} mr-5 file-type-icon">
+                        <i class="fas fa-${config.icon} text-3xl"></i>
                     </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Format</p>
-                        <p class="font-medium">${ext.toUpperCase()}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Ukuran</p>
-                        <p class="font-medium">${file.size || '-'}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Tanggal Upload</p>
-                        <p class="font-medium">${uploadDate}</p>
+                    <div class="flex-1">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">${file.name}</h4>
+                        <div class="flex items-center mb-4">
+                            <span class="bg-yellow-100 text-yellow-800 text-xs px-2.5 py-1 rounded-full font-medium">
+                                <i class="fas fa-star mr-1"></i> Favorit
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <p class="text-sm text-gray-500">Tipe File</p>
+                                <p class="font-medium">${config.type}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Format</p>
+                                <p class="font-medium">${ext.toUpperCase()}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Ukuran</p>
+                                <p class="font-medium">${file.size || '-'}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Tanggal Upload</p>
+                                <p class="font-medium">${uploadDate}</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <p class="text-sm text-gray-500 mb-2">Deskripsi</p>
+                            <p class="text-gray-700">
+                                File ${config.type} ini telah Anda tandai sebagai favorit.
+                                File diupload pada ${uploadDate}.
+                                ${file.shared ? 'File ini telah dibagikan.' : 'File ini bersifat pribadi.'}
+                            </p>
+                        </div>
+
+                        <div class="mt-8 flex justify-end space-x-3">
+                            <a href="/storage/uploads/${encodeURIComponent(file.name)}" download
+                                class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-5 rounded-xl font-medium flex items-center">
+                                <i class="fas fa-download mr-2"></i> Unduh
+                            </a>
+
+                            <button class="bg-blue-500 hover:bg-blue-600 text-white py-2.5 px-5 rounded-xl font-medium flex items-center" onclick="openShareModal('${file.name}')">
+                                <i class="fas fa-share-alt mr-2"></i> Bagikan
+                            </button>
+                        </div>
                     </div>
                 </div>
-
-                <div class="mt-6">
-                    <p class="text-sm text-gray-500 mb-2">Deskripsi</p>
-                    <p class="text-gray-700">
-                        File ${config.type} ini telah Anda tandai sebagai favorit.
-                        File diupload pada ${uploadDate}.
-                        ${file.shared ? 'File ini telah dibagikan.' : 'File ini bersifat pribadi.'}
-                    </p>
-                </div>
-
-                <div class="mt-8 flex justify-end space-x-3">
-                    <a href="/storage/uploads/${encodeURIComponent(file.name)}" download
-                        class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-5 rounded-xl font-medium flex items-center">
-                        <i class="fas fa-download mr-2"></i> Unduh
-                    </a>
-
-                    <button class="bg-blue-500 hover:bg-blue-600 text-white py-2.5 px-5 rounded-xl font-medium flex items-center">
-                        <i class="fas fa-share-alt mr-2"></i> Bagikan
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
+            `;
 
             modal.classList.remove('hidden');
         }
@@ -1320,18 +1811,17 @@
         });
 
         // Toggle filter dropdown
-        document.getElementById('filterButton').addEventListener('click', () => {
+        document.getElementById('filterButton').addEventListener('click', (event) => {
+            event.stopPropagation();
             document.getElementById('filterDropdown').classList.toggle('hidden');
         });
 
         // Close dropdowns when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.dropdown') && !e.target.closest('#filterButton')) {
-                document.querySelectorAll('.dropdown-content').forEach(dropdown => {
-                    dropdown.classList.add('hidden');
-                });
-                document.getElementById('filterDropdown').classList.add('hidden');
-            }
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.dropdown-content').forEach(dropdown => {
+                dropdown.classList.add('hidden');
+            });
+            document.getElementById('filterDropdown').classList.add('hidden');
         });
 
         // Prevent dropdown close when clicking inside
@@ -1344,15 +1834,33 @@
         // Initialize the page
         document.addEventListener('DOMContentLoaded', () => {
             fetchFavorites();
-            
+            fetchUsers();
+            initializeShareModal();
+
+            // Terapkan filter yang disimpan
+            const savedFilter = localStorage.getItem('selectedFileType');
+            if (savedFilter) {
+                activeFilterType = savedFilter;
+                document.querySelectorAll('.filter-option').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.type === savedFilter);
+                });
+            }
+
+            applySearchAndFilter();
+
             // Set up search input listener
-            document.getElementById('searchInput').addEventListener('input', applySearch);
-            
-            // Set initial filter
-            filterFavorites('all');
+            document.getElementById('searchInput').addEventListener('input', applySearchAndFilter);
         });
 
-         document.addEventListener('DOMContentLoaded', function () {
+        // Make functions globally available
+        window.openShareModal = openShareModal;
+        window.filterFavorites = filterFavorites;
+        window.showFileDetails = showFileDetails;
+        window.confirmDelete = confirmDelete;
+        window.removeFromFavorites = removeFromFavorites;
+        window.toggleDropdown = toggleDropdown;
+
+        document.addEventListener('DOMContentLoaded', function () {
 
             const settingsModal = document.getElementById('settingsModal');
             const settingsBtn = document.getElementById('settingsBtn');
@@ -1408,7 +1916,7 @@
             // Real-time cek password match + strength
             passwordInput.addEventListener('input', function () {
                 checkPasswordMatch();
-                checkPasswordStrength(passwordInput.value); // <-- FIX: panggil strength
+                checkPasswordStrength(passwordInput.value);
             });
 
             confirmPasswordInput.addEventListener('input', function () {
@@ -1493,11 +2001,11 @@
             }
 
             strengthDisplay.innerHTML = `
-        <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div class="h-2 ${color} transition-all duration-300" style="width: ${score * 20}%;"></div>
-        </div>
-        <p class="text-xs mt-1 ${color.replace('bg', 'text')} font-medium">${level}</p>
-    `;
+                <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="h-2 ${color} transition-all duration-300" style="width: ${score * 20}%;"></div>
+                </div>
+                <p class="text-xs mt-1 ${color.replace('bg', 'text')} font-medium">${level}</p>
+            `;
         }
 
     </script>

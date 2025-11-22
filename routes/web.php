@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\EarthController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\ShareController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FileController;
@@ -43,6 +44,7 @@ Route::get('/audio', [AudioController::class, 'audios'])->middleware('auth');
 Route::get('/archive', [ArchiveController::class, 'archives'])->middleware('auth');
 Route::get('/favorites', [FavoriteController::class, 'favorite'])->middleware('auth');
 Route::get('/earth', [EarthController::class, 'earth'])->middleware('auth');
+Route::get('/share', [ShareController::class, 'shares'])->middleware('auth');
 Route::post('/settings/update', [AuthController::class, 'updateSettings'])->name('settings.update');
 
 Route::get('/users', [AuthController::class, 'users']);

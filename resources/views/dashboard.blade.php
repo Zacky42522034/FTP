@@ -185,6 +185,13 @@
             transform: scale(0.95);
             transition: opacity 200ms, transform 200ms;
         }
+
+        /* Tambahan untuk styling filter aktif */
+        .filter-option.active {
+            background-color: #eff6ff;
+            color: #3b82f6;
+            font-weight: 500;
+        }
     </style>
 </head>
 
@@ -292,7 +299,7 @@
                         class="ml-auto bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full font-medium">{{ $totalArchives }}</span>
                 </a>
 
-                <a href="#"
+                <a href="/share"
                     class="flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition">
                     <i class="fas fa-share-alt w-5 mr-3"></i>
                     <span>Berbagi</span>
@@ -325,7 +332,7 @@
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
                     <div class="storage-progress h-2 rounded-full bg-blue-500 transition-all duration-500"
-                        style="width: {{ $usedPercent }}%;">
+                        style="width: {{ $usedPercent }};">
                     </div>
                 </div>
             </div>
@@ -779,33 +786,63 @@
     <script>
         // Inisialisasi variabel global
         let files = [];
+        let allFiles = [];
         let currentFileToShare = null;
         let users = [];
         let selectedUsers = [];
         let filteredUsers = [];
+        let activeFilterType = 'all';
 
-        // File type icons and colors
+        // File type icons and colors - SAMA PERSIS dengan di halaman Semua File
         const fileConfig = {
-            pdf: { icon: 'file-pdf', color: 'text-red-500 bg-red-100' },
-            ppt: { icon: 'file-powerpoint', color: 'text-orange-500 bg-orange-100' },
-            doc: { icon: 'file-word', color: 'text-blue-500 bg-blue-100' },
-            docx: { icon: 'file-word', color: 'text-blue-500 bg-blue-100' },
-            xls: { icon: 'file-excel', color: 'text-green-500 bg-green-100' },
-            xlsx: { icon: 'file-excel', color: 'text-green-500 bg-green-100' },
-            jpg: { icon: 'file-image', color: 'text-purple-500 bg-purple-100' },
-            jpeg: { icon: 'file-image', color: 'text-purple-500 bg-purple-100' },
-            png: { icon: 'file-image', color: 'text-purple-500 bg-purple-100' },
-            gif: { icon: 'file-image', color: 'text-purple-500 bg-purple-100' },
-            mp4: { icon: 'file-video', color: 'text-pink-500 bg-pink-100' },
-            mov: { icon: 'file-video', color: 'text-pink-500 bg-pink-100' },
-            mp3: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100' },
-            wav: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100' },
-            default: { icon: 'file', color: 'text-gray-500 bg-gray-100' },
-            txt: { icon: 'file-alt', color: 'text-gray-500 bg-gray-100' },
-            zip: { icon: 'file-archive', color: 'text-orange-600 bg-orange-100' },
-            rar: { icon: 'file-archive', color: 'text-orange-700 bg-orange-100' },
-            kml: { icon: 'map-marked-alt', color: 'text-blue-500 bg-blue-100' },
-            kmz: { icon: 'layer-group', color: 'text-purple-500 bg-purple-100' },
+            pdf: { icon: 'file-pdf', color: 'text-red-500 bg-red-100', type: 'Dokumen' },
+            ppt: { icon: 'file-powerpoint', color: 'text-orange-500 bg-orange-100', type: 'Presentasi' },
+            pptx: { icon: 'file-powerpoint', color: 'text-orange-500 bg-orange-100', type: 'Presentasi' },
+            doc: { icon: 'file-word', color: 'text-blue-500 bg-blue-100', type: 'Dokumen' },
+            docx: { icon: 'file-word', color: 'text-blue-500 bg-blue-100', type: 'Dokumen' },
+            xls: { icon: 'file-excel', color: 'text-green-500 bg-green-100', type: 'Spreadsheet' },
+            xlsx: { icon: 'file-excel', color: 'text-green-500 bg-green-100', type: 'Spreadsheet' },
+
+            // GAMBAR
+            jpg: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar' },
+            jpeg: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar' },
+            png: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar' },
+            gif: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar' },
+            svg: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar' },
+            webp: { icon: 'file-image', color: 'text-purple-500 bg-purple-100', type: 'Gambar' },
+
+            // VIDEO
+            mp4: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video' },
+            mov: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video' },
+            avi: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video' },
+            mkv: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video' },
+            wmv: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video' },
+            webm: { icon: 'file-video', color: 'text-pink-500 bg-pink-100', type: 'Video' },
+
+            // AUDIO
+            mp3: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio' },
+            wav: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio' },
+            flac: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio' },
+            aac: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio' },
+            ogg: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio' },
+            mp4a: { icon: 'file-audio', color: 'text-yellow-500 bg-yellow-100', type: 'Audio' },
+
+            // ARCHIVE
+            zip: { icon: 'file-archive', color: 'text-orange-600 bg-orange-100', type: 'Archive' },
+            rar: { icon: 'file-archive', color: 'text-orange-700 bg-orange-100', type: 'Archive' },
+            '7z': { icon: 'file-archive', color: 'text-orange-800 bg-orange-100', type: 'Archive' },
+            tar: { icon: 'file-archive', color: 'text-orange-700 bg-orange-100', type: 'Archive' },
+            gz: { icon: 'file-archive', color: 'text-orange-700 bg-orange-100', type: 'Archive' },
+
+            // TEKS
+            txt: { icon: 'file-alt', color: 'text-gray-500 bg-gray-100', type: 'Teks' },
+
+            // KML / KMZ
+            kml: { icon: 'map-marked-alt', color: 'text-blue-500 bg-blue-100', type: 'Peta' },
+            kmz: { icon: 'layer-group', color: 'text-purple-500 bg-purple-100', type: 'Peta' },
+
+            // DEFAULT
+            default: { icon: 'file', color: 'text-gray-500 bg-gray-100', type: 'File' },
         };
 
         // Fungsi untuk mengambil data users dari backend
@@ -830,13 +867,13 @@
             }
         }
 
-
         // Ambil data file dari backend Laravel
         async function fetchFiles() {
             try {
                 const response = await fetch('/files');
                 if (!response.ok) throw new Error('Failed to fetch files');
                 files = await response.json();
+                allFiles = [...files];
                 renderFiles();
             } catch (error) {
                 console.error('Gagal memuat data file:', error);
@@ -851,6 +888,17 @@
             fetchUsers();
             initializeEventListeners();
             initializeModals();
+            
+            // Terapkan filter yang disimpan
+            const savedFilter = localStorage.getItem('selectedFileType');
+            if (savedFilter) {
+                activeFilterType = savedFilter;
+                document.querySelectorAll('.filter-option').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.type === savedFilter);
+                });
+            }
+            
+            applySearchAndFilter();
         });
 
         // Render file cards
@@ -906,7 +954,7 @@
                             </button>
                             <div class="dropdown-content bg-white rounded-xl shadow-lg border border-gray-200 py-2 w-48 hidden absolute right-0 z-10">
                                 <a href="javascript:void(0);" 
-                                    onclick="showFileDetails(file)" 
+                                    onclick="showFileDetails(${JSON.stringify(file).replace(/"/g, '&quot;')})" 
                                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     <i class="fas fa-eye mr-2"></i> Lihat Detail
                                 </a>
@@ -1109,7 +1157,6 @@
             });
         }
 
-
         function toggleUser(user) {
             const index = selectedUsers.findIndex(u => u.id === user.id);
             if (index === -1) {
@@ -1161,62 +1208,59 @@
         }
 
         async function handleShare() {
-    if (selectedUsers.length === 0) {
-        Swal.fire('Peringatan', 'Pilih setidaknya satu penerima.', 'warning');
-        return;
-    }
+            if (selectedUsers.length === 0) {
+                Swal.fire('Peringatan', 'Pilih setidaknya satu penerima.', 'warning');
+                return;
+            }
 
-    if (!currentFileToShare) {
-        Swal.fire('Peringatan', 'Nama file tidak ditemukan.', 'warning');
-        return;
-    }
+            if (!currentFileToShare) {
+                Swal.fire('Peringatan', 'Nama file tidak ditemukan.', 'warning');
+                return;
+            }
 
-    try {
-        const recipient = selectedUsers[0];
+            try {
+                const recipient = selectedUsers[0];
 
-        const body = {
-            files: [
-                {
-                    name: currentFileToShare, // WAJIB
-                    size: "0 MB"
+                const body = {
+                    files: [
+                        {
+                            name: currentFileToShare, // WAJIB
+                            size: "0 MB"
+                        }
+                    ],
+                    to_email: recipient.email
+                };
+
+                const response = await fetch('/files/share', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    Swal.fire('Error', data.error || 'Input invalid', 'error');
+                    return;
                 }
-            ],
-            to_email: recipient.email
-        };
 
-        const response = await fetch('/files/share', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify(body)
-        });
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: `File "${currentFileToShare}" telah dibagikan kepada ${recipient.name}`,
+                    icon: 'success'
+                }).then(() => {
+                    closeShareModal();
+                    fetchFiles();
+                });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            Swal.fire('Error', data.error || 'Input invalid', 'error');
-            return;
+            } catch (error) {
+                console.error('Error sharing file:', error);
+                Swal.fire('Error', 'Gagal membagikan file', 'error');
+            }
         }
-
-        Swal.fire({
-            title: 'Berhasil!',
-            text: `File "${currentFileToShare}" telah dibagikan kepada ${recipient.name}`,
-            icon: 'success'
-        }).then(() => {
-            closeShareModal();
-            fetchFiles();
-        });
-
-    } catch (error) {
-        console.error('Error sharing file:', error);
-        Swal.fire('Error', 'Gagal membagikan file', 'error');
-    }
-}
-
-
-
 
         // OTHER UTILITY FUNCTIONS
         function toggleDropdown(button) {
@@ -1267,7 +1311,7 @@
                         <div class="grid grid-cols-2 gap-4 mt-4">
                             <div>
                                 <p class="text-sm text-gray-500">Tipe File</p>
-                                <p class="font-medium">${(file.type || ext || '').toUpperCase()}</p>
+                                <p class="font-medium">${config.type} (${ext?.toUpperCase()})</p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Ukuran</p>
@@ -1285,7 +1329,8 @@
                         <div class="mt-6">
                             <p class="text-sm text-gray-500 mb-2">Deskripsi</p>
                             <p class="text-gray-700">
-                                File ${(file.type || ext || '').toUpperCase()} ini diupload pada ${file.date || 'tanggal tidak diketahui'}.
+                                File ${config.type} ini diupload pada ${file.date || 'tanggal tidak diketahui'}.
+                                ${file.shared ? file.shared : ""}
                             </p>
                         </div>
                         <div class="mt-8 flex justify-end space-x-3">
@@ -1302,6 +1347,42 @@
                 </div>
             `;
             modal.classList.remove('hidden');
+        }
+
+        // SEARCH AND FILTER FUNCTIONS - SAMA PERSIS dengan di halaman Semua File
+        function applySearchAndFilter() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            // Filter dan search pada data asli
+            files = allFiles.filter(file => {
+                const ext = file.name?.split('.').pop()?.toLowerCase() || '';
+                const type = file.type?.toLowerCase() || ext;
+                const name = (file.name || '').toLowerCase();
+
+                const matchSearch = name.includes(searchValue) || type.includes(searchValue);
+
+                const matchFilter =
+                    activeFilterType === 'all' ||
+                    type === activeFilterType ||
+                    (activeFilterType === 'gambar' && ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(ext));
+
+                return matchSearch && matchFilter;
+            });
+
+            renderFiles();
+        }
+
+        function filterFiles(type) {
+            activeFilterType = type;
+            localStorage.setItem('selectedFileType', type);
+
+            // Update UI
+            document.querySelectorAll('.filter-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === type);
+            });
+
+            document.getElementById('filterDropdown').classList.add('hidden');
+            applySearchAndFilter();
         }
 
         // INITIALIZATION FUNCTIONS
@@ -1410,42 +1491,6 @@
                     if (e.target === shareModal) closeShareModal();
                 });
             }
-        }
-
-        // SEARCH AND FILTER FUNCTIONS
-        let activeFilterType = localStorage.getItem('selectedFileType') || 'all';
-
-        function applySearchAndFilter() {
-            const searchValue = document.getElementById('searchInput').value.toLowerCase().trim();
-            const cards = document.querySelectorAll('.file-card');
-
-            cards.forEach(card => {
-                const cardType = (card.dataset.type || '').toLowerCase();
-                const cardName = (card.dataset.name || '').toLowerCase();
-
-                const matchSearch = cardName.includes(searchValue) || cardType.includes(searchValue);
-                const matchFilter =
-                    activeFilterType === 'all' ||
-                    cardType === activeFilterType ||
-                    (activeFilterType === 'gambar' && ['jpg', 'jpeg', 'png'].includes(cardType));
-
-                if (matchSearch && matchFilter) {
-                    card.classList.remove('hidden');
-                } else {
-                    card.classList.add('hidden');
-                }
-            });
-        }
-
-        function filterFiles(type) {
-            activeFilterType = type;
-            localStorage.setItem('selectedFileType', type);
-            applySearchAndFilter();
-
-            // Highlight tombol aktif
-            document.querySelectorAll('.filter-option').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.type === type);
-            });
         }
 
         // FILE UPLOAD FUNCTIONALITY

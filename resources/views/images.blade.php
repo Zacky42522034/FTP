@@ -177,6 +177,13 @@
         #filterDropdown::-webkit-scrollbar-thumb:hover {
             background-color: rgba(107, 114, 128, 0.8);
         }
+
+        /* Tambahan untuk styling filter aktif */
+        .filter-option.active {
+            background-color: #eff6ff;
+            color: #3b82f6;
+            font-weight: 500;
+        }
     </style>
 </head>
 
@@ -284,7 +291,7 @@
                         class="ml-auto bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full font-medium">{{ $totalArchives }}</span>
                 </a>
 
-                <a href="#"
+                <a href="/share"
                     class="flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition">
                     <i class="fas fa-share-alt w-5 mr-3"></i>
                     <span>Berbagi</span>
@@ -433,66 +440,116 @@
                             <i class="fas fa-search absolute right-3 top-3.5 text-gray-500"></i>
                         </div>
 
-                        <!-- Filter Format -->
+                        <!-- Filter Format - SAMA PERSIS SEPERTI DI ALL-FILE -->
                         <div class="relative inline-block text-left">
+                            <!-- Tombol Filter -->
                             <button id="filterButton"
                                 class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-4 rounded-xl font-medium transition-colors duration-200 flex items-center">
-                                <i class="fas fa-filter mr-2"></i> Format
+                                <i class="fas fa-filter mr-2"></i> Filter
                                 <i class="fas fa-chevron-down ml-2 text-gray-500"></i>
                             </button>
+
+                            <!-- Dropdown Filter -->
+                            @php
+                                // Daftar ekstensi gambar
+                                $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
+
+                                // Filter hanya file gambar
+                                $imageFiles = collect($files)->filter(function ($file) use ($imageExtensions) {
+                                    return in_array(strtolower($file['type']), $imageExtensions);
+                                });
+
+                                // Ambil 8 gambar terakhir berdasarkan created_at
+                                $latestImages = $imageFiles->sortByDesc('created_at');
+
+                                // Ambil semua jenis format yang ada di 8 gambar terakhir
+                                $latestTypes = $latestImages->pluck('type')->map(fn($t) => strtolower($t))->unique();
+
+                                // Cek apakah format tertentu ada di dalam 8 gambar terakhir
+                                $hasJPG = $latestTypes->contains(fn($t) => in_array($t, ['jpg', 'jpeg']));
+                                $hasPNG = $latestTypes->contains('png');
+                                $hasGIF = $latestTypes->contains('gif');
+                                $hasSVG = $latestTypes->contains('svg');
+                                $hasWEBP = $latestTypes->contains('webp');
+                            @endphp
+
 
                             <div id="filterDropdown"
                                 class="hidden absolute right-0 mt-2 max-h-64 overflow-y-auto w-48 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 z-10 transition-all duration-200">
                                 <ul class="py-2 text-gray-700" id="filterList">
                                     <li>
                                         <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md active"
                                             data-type="all" onclick="filterImages('all')">
-                                            Semua Format
+                                            Semua
                                         </button>
                                     </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="jpg" onclick="filterImages('jpg')">
-                                            JPG
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="jpeg" onclick="filterImages('jpeg')">
-                                            JPEG
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="png" onclick="filterImages('png')">
-                                            PNG
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="gif" onclick="filterImages('gif')">
-                                            GIF
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="svg" onclick="filterImages('svg')">
-                                            SVG
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="webp" onclick="filterImages('webp')">
-                                            WEBP
-                                        </button>
-                                    </li>
+
+                                    @if ($hasJPG)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="jpg" onclick="filterImages('jpg')">
+                                                JPG
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasPNG)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="png" onclick="filterImages('png')">
+                                                PNG
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasGIF)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="gif" onclick="filterImages('gif')">
+                                                GIF
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasSVG)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="svg" onclick="filterImages('svg')">
+                                                SVG
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasWEBP)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="webp" onclick="filterImages('webp')">
+                                                WEBP
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    {{-- 🔹 Render format gambar lainnya yang ada di 8 file terakhir --}}
+                                    @foreach ($latestTypes as $type)
+                                        @php
+                                            $lowerType = strtolower($type);
+                                        @endphp
+                                        @if (!in_array($lowerType, ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp']))
+                                            <li>
+                                                <button
+                                                    class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                    data-type="{{ $lowerType }}" onclick="filterImages('{{ $lowerType }}')">
+                                                    {{ strtoupper($type) }}
+                                                </button>
+                                            </li>
+                                        @endif
+                                    @endforeach
                                 </ul>
                             </div>
                         </div>
@@ -1708,12 +1765,22 @@
             });
         });
 
-        // Filter images by format
+        // Filter images by format - SAMA PERSIS SEPERTI DI ALL-FILE
         function filterImages(type) {
             activeFilterType = type;
+
+            // Update UI - aktifkan tombol filter yang dipilih
+            document.querySelectorAll('.filter-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === type);
+            });
+
+            document.getElementById('filterDropdown').classList.add('hidden');
+
+            // Simpan filter yang dipilih
+            localStorage.setItem('selectedImageType', type);
+
             currentPage = 1; // Reset to first page when filtering
             applyFilters();
-            document.getElementById('filterDropdown').classList.add('hidden');
         }
 
         // Search functionality
@@ -1730,6 +1797,15 @@
             fetchImages();
             fetchUsers();
             initializeShareModal();
+
+            // Terapkan filter yang disimpan
+            const savedFilter = localStorage.getItem('selectedImageType');
+            if (savedFilter) {
+                activeFilterType = savedFilter;
+                document.querySelectorAll('.filter-option').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.type === savedFilter);
+                });
+            }
 
             // Mobile menu toggle
             document.getElementById('mobileMenuBtn').addEventListener('click', () => {

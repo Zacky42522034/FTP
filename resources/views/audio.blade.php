@@ -224,6 +224,63 @@
                 transform: translateX(100%);
             }
         }
+
+        /* Modal Share Styles */
+        .fade-in {
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        .slide-down {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .selected-user {
+            background-color: #e0f2fe;
+            border-color: #0ea5e9;
+        }
+
+        /* Scrollbar lembut dan minimalis */
+        #filterDropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #filterDropdown::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.6);
+            border-radius: 3px;
+        }
+
+        #filterDropdown::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(107, 114, 128, 0.8);
+        }
+
+        /* Tambahan untuk styling filter aktif */
+        .filter-option.active {
+            background-color: #eff6ff;
+            color: #3b82f6;
+            font-weight: 500;
+        }
     </style>
 </head>
 
@@ -331,7 +388,7 @@
                         class="ml-auto bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full font-medium">{{ $totalArchives }}</span>
                 </a>
 
-                <a href="/#"
+                <a href="/share"
                     class="flex items-center px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition">
                     <i class="fas fa-share-alt w-5 mr-3"></i>
                     <span>Berbagi</span>
@@ -393,9 +450,6 @@
                 </div>
 
                 <div class="flex items-center space-x-4">
-                    <!-- Search Bar -->
-                    
-
                     <!-- Quick Actions -->
                     <div class="flex space-x-2">
                         <button onclick="window.location.reload()"
@@ -496,66 +550,136 @@
                             <i class="fas fa-search absolute right-3 top-3.5 text-gray-500"></i>
                         </div>
 
-                        <!-- Filter Format -->
+                        <!-- Filter Format - DIPERBAIKI SEPERTI DI DOKUMEN DAN VIDEO -->
                         <div class="relative inline-block text-left">
+                            <!-- Tombol Filter -->
                             <button id="filterButton"
                                 class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-4 rounded-xl font-medium transition-colors duration-200 flex items-center">
-                                <i class="fas fa-filter mr-2"></i> Format Audio
+                                <i class="fas fa-filter mr-2"></i> Filter
                                 <i class="fas fa-chevron-down ml-2 text-gray-500"></i>
                             </button>
+
+                            <!-- Dropdown Filter -->
+                            @php
+                                // Daftar ekstensi audio
+                                $audioExtensions = [
+                                    'mp3',
+                                    'wav',
+                                    'flac',
+                                    'aac',
+                                    'ogg',
+                                    'm4a'
+                                ];
+
+                                // Filter hanya file audio
+                                $audioFiles = collect($files)->filter(function ($file) use ($audioExtensions) {
+                                    return in_array(strtolower($file['type']), $audioExtensions);
+                                });
+
+                                // Ambil 8 audio terakhir
+                                $latestAudios = $audioFiles->sortByDesc('created_at');
+
+                                // Ambil tipe unik dari 8 audio terakhir
+                                $latestTypes = $latestAudios->pluck('type')
+                                    ->map(fn($t) => strtolower($t))
+                                    ->unique();
+
+                                // Cek format audio
+                                $hasMP3 = $latestTypes->contains('mp3');
+                                $hasWAV = $latestTypes->contains('wav');
+                                $hasFLAC = $latestTypes->contains('flac');
+                                $hasAAC = $latestTypes->contains('aac');
+                                $hasOGG = $latestTypes->contains('ogg');
+                                $hasM4A = $latestTypes->contains('m4a');
+                            @endphp
+
 
                             <div id="filterDropdown"
                                 class="hidden absolute right-0 mt-2 max-h-64 overflow-y-auto w-48 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 z-10 transition-all duration-200">
                                 <ul class="py-2 text-gray-700" id="filterList">
                                     <li>
                                         <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md active"
                                             data-type="all" onclick="filterAudios('all')">
-                                            Semua Format
+                                            Semua
                                         </button>
                                     </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="mp3" onclick="filterAudios('mp3')">
-                                            MP3
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="wav" onclick="filterAudios('wav')">
-                                            WAV
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="flac" onclick="filterAudios('flac')">
-                                            FLAC
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="aac" onclick="filterAudios('aac')">
-                                            AAC
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="ogg" onclick="filterAudios('ogg')">
-                                            OGG
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button
-                                            class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
-                                            data-type="m4a" onclick="filterAudios('m4a')">
-                                            M4A
-                                        </button>
-                                    </li>
+
+                                    @if ($hasMP3)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="mp3" onclick="filterAudios('mp3')">
+                                                MP3
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasWAV)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="wav" onclick="filterAudios('wav')">
+                                                WAV
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasFLAC)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="flac" onclick="filterAudios('flac')">
+                                                FLAC
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasAAC)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="aac" onclick="filterAudios('aac')">
+                                                AAC
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasOGG)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="ogg" onclick="filterAudios('ogg')">
+                                                OGG
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    @if ($hasM4A)
+                                        <li>
+                                            <button
+                                                class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                data-type="m4a" onclick="filterAudios('m4a')">
+                                                M4A
+                                            </button>
+                                        </li>
+                                    @endif
+
+                                    {{-- 🔹 Render format audio lainnya yang ada di 8 file terakhir --}}
+                                    @foreach ($latestTypes as $type)
+                                        @php
+                                            $lowerType = strtolower($type);
+                                        @endphp
+                                        @if (!in_array($lowerType, ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a']))
+                                            <li>
+                                                <button
+                                                    class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md"
+                                                    data-type="{{ $lowerType }}" onclick="filterAudios('{{ $lowerType }}')">
+                                                    {{ strtoupper($type) }}
+                                                </button>
+                                            </li>
+                                        @endif
+                                    @endforeach
                                 </ul>
                             </div>
                         </div>
@@ -689,8 +813,8 @@
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 transform transition-transform">
             <div class="p-6 border-b border-gray-200 flex justify-between items-center">
                 <h3 class="text-xl font-bold text-gray-800">Detail Audio</h3>
-                <button
-                    class="closeModal text-gray-500 hover:text-gray-700 p-1 rounded-lg hover:bg-gray-100 transition-colors">
+                <button id="closeFileModal"
+                    class="text-gray-500 hover:text-gray-700 p-1 rounded-lg hover:bg-gray-100 transition-colors">
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
@@ -699,6 +823,95 @@
             </div>
         </div>
     </div>
+
+    <!-- Share Modal -->
+    <div id="shareModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden transition-opacity duration-300">
+        <div
+            class="modal-box bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 transform transition-all duration-300 slide-down">
+
+            <!-- HEADER -->
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">Bagikan File</h3>
+                    <p class="text-sm text-gray-500 mt-1">Pilih penerima untuk berbagi</p>
+                </div>
+                <button
+                    class="close-share-modal text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- BODY -->
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- KIRI: File + Search + Users -->
+                <div class="space-y-6">
+                    <!-- FILE INFO -->
+                    <div>
+                        <h4 class="font-medium text-gray-700 mb-2">File yang akan dibagikan:</h4>
+                        <div id="sharedFileInfo" class="bg-gray-50 p-3 rounded-lg flex items-center">
+                            <i class="fas fa-music text-blue-500 mr-3"></i>
+                            <span id="sharedFileName" class="font-medium">Nama File</span>
+                        </div>
+                    </div>
+
+                    <!-- SEARCH -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-search mr-2 text-gray-500"></i>Cari Penerima
+                        </label>
+                        <div class="relative">
+                            <input type="text"
+                                class="search-users w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                placeholder="Cari nama atau email...">
+                            <button type="button"
+                                class="clear-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 hidden">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- USER LIST -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-users mr-2 text-gray-500"></i>Pilih Penerima
+                        </label>
+                        <div class="border border-gray-300 rounded-xl max-h-64 overflow-y-auto">
+                            <div class="users-list divide-y divide-gray-200"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KANAN: Selected Users -->
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-user-check mr-2 text-gray-500"></i>
+                            Penerima Dipilih <span class="selected-count text-blue-500 ml-1">(0)</span>
+                        </label>
+                        <div
+                            class="selected-users flex flex-wrap gap-2 min-h-12 p-3 border border-gray-300 rounded-xl bg-gray-50">
+                            <p class="placeholder text-gray-500 text-sm py-2 px-3">Belum ada penerima dipilih</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER BUTTONS -->
+            <div class="px-6 pb-6 flex space-x-3">
+                <button type="button"
+                    class="cancel-share flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-xl font-medium transition-colors">
+                    Batal
+                </button>
+                <button type="button"
+                    class="share-button flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl font-medium flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled>
+                    <i class="fas fa-share-alt mr-2"></i>Bagikan
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="settingsModal"
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden transition-opacity">
 
@@ -798,13 +1011,20 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         let audios = [];
+        let allAudios = [];
         let currentView = 'grid';
         let currentPage = 1;
         const itemsPerPage = 12;
         let currentSort = { field: 'date', direction: 'desc' };
+        let activeFilterType = 'all';
         let filteredAudios = [];
         let searchTimeout = null;
-        let activeFilterType = 'all';
+
+        // Variabel untuk fitur berbagi
+        let currentFileToShare = null;
+        let users = [];
+        let selectedUsers = [];
+        let filteredUsers = [];
 
         // Audio file types configuration
         const audioTypes = [
@@ -862,6 +1082,277 @@
             },
         };
 
+        // ==================== FUNGSI BERBAGI FILE ====================
+
+        // Fungsi untuk membuka modal berbagi
+        function openShareModal(fileName) {
+            currentFileToShare = fileName;
+            const modal = document.getElementById('shareModal');
+            const fileNameElement = document.getElementById('sharedFileName');
+
+            fileNameElement.textContent = fileName;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            // Reset dan render ulang daftar pengguna
+            selectedUsers = [];
+            filteredUsers = [...users];
+            renderUsersList();
+            renderSelectedUsers();
+            updateShareButton();
+
+            setTimeout(() => {
+                const searchInput = document.querySelector('.search-users');
+                if (searchInput) searchInput.focus();
+            }, 300);
+        }
+
+        // Fungsi untuk menutup modal berbagi
+        function closeShareModal() {
+            const modal = document.getElementById('shareModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            resetShareForm();
+        }
+
+        // Fungsi untuk merender daftar pengguna
+        function renderUsersList() {
+            const usersList = document.querySelector('.users-list');
+            if (!usersList) return;
+
+            usersList.innerHTML = '';
+
+            if (filteredUsers.length === 0) {
+                usersList.innerHTML = `
+                    <div class="p-4 text-center text-gray-500">
+                        <i class="fas fa-user-slash text-2xl mb-2"></i>
+                        <p>Tidak ada pengguna</p>
+                    </div>`;
+                return;
+            }
+
+            filteredUsers.forEach(user => {
+                const isSelected = selectedUsers.some(u => u.id === user.id);
+
+                const div = document.createElement('div');
+                div.className = `
+                    p-3 cursor-pointer transition-all duration-200 
+                    ${isSelected ? 'selected-user bg-blue-50' : 'hover:bg-gray-50'}
+                `;
+
+                div.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 
+                            ${user.color || 'bg-blue-500'} 
+                            rounded-full flex items-center justify-center 
+                            text-white font-medium mr-3">
+                            ${user.avatar || user.name.substring(0, 2).toUpperCase()}
+                        </div>
+
+                        <div class="flex-1">
+                            <div class="font-medium">${user.name}</div>
+                            <div class="text-sm text-gray-500">${user.email}</div>
+                        </div>
+
+                        <div class="w-5 h-5 rounded-full border-2 
+                            ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300'} 
+                            flex items-center justify-center">
+                            ${isSelected ? '<i class="fas fa-check text-white text-xs"></i>' : ''}
+                        </div>
+                    </div>
+                `;
+
+                div.addEventListener('click', () => toggleUser(user));
+                usersList.appendChild(div);
+            });
+        }
+
+        // Fungsi untuk toggle pemilihan pengguna
+        function toggleUser(user) {
+            const index = selectedUsers.findIndex(u => u.id === user.id);
+            if (index === -1) {
+                selectedUsers.push(user);
+            } else {
+                selectedUsers.splice(index, 1);
+            }
+            renderUsersList();
+            renderSelectedUsers();
+            updateShareButton();
+        }
+
+        // Fungsi untuk merender pengguna yang dipilih
+        function renderSelectedUsers() {
+            const selectedUsersBox = document.querySelector('.selected-users');
+            const selectedCount = document.querySelector('.selected-count');
+
+            if (!selectedUsersBox || !selectedCount) return;
+
+            selectedUsersBox.innerHTML = '';
+            selectedCount.textContent = `(${selectedUsers.length})`;
+
+            if (selectedUsers.length === 0) {
+                selectedUsersBox.innerHTML = '<p class="placeholder text-gray-500 text-sm py-2 px-3">Belum ada penerima dipilih</p>';
+                return;
+            }
+
+            selectedUsers.forEach(user => {
+                const chip = document.createElement('div');
+                chip.className = 'bg-blue-100 text-blue-800 rounded-full py-1 px-3 text-sm flex items-center';
+                chip.innerHTML = `
+                    <span>${user.name}</span>
+                    <button class="ml-2 text-blue-600 hover:text-blue-800">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                `;
+                chip.querySelector('button').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleUser(user);
+                });
+                selectedUsersBox.appendChild(chip);
+            });
+        }
+
+        // Fungsi untuk update tombol berbagi
+        function updateShareButton() {
+            const shareButton = document.querySelector('.share-button');
+            if (shareButton) {
+                shareButton.disabled = selectedUsers.length === 0;
+            }
+        }
+
+        // Fungsi untuk reset form berbagi
+        function resetShareForm() {
+            selectedUsers = [];
+            filteredUsers = [...users];
+            const searchInput = document.querySelector('.search-users');
+            if (searchInput) searchInput.value = '';
+            const clearSearch = document.querySelector('.clear-search');
+            if (clearSearch) clearSearch.classList.add('hidden');
+            renderUsersList();
+            renderSelectedUsers();
+            updateShareButton();
+        }
+
+        // Fungsi untuk menangani proses berbagi
+        async function handleShare() {
+            if (selectedUsers.length === 0) {
+                Swal.fire('Peringatan', 'Pilih setidaknya satu penerima.', 'warning');
+                return;
+            }
+
+            if (!currentFileToShare) {
+                Swal.fire('Peringatan', 'Nama file tidak ditemukan.', 'warning');
+                return;
+            }
+
+            try {
+                const recipients = selectedUsers.map(u => u.email); // ambil email penerima
+                const recipientsString = recipients[0]; // untuk sementara ambil 1 dulu
+
+                const response = await fetch('/files/share', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        files: [
+                            {
+                                name: currentFileToShare,
+                                size: "0 MB" // bisa diubah sesuai data asli
+                            }
+                        ],
+                        to_email: recipientsString
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    Swal.fire('Error', data.error || 'Gagal membagikan file', 'error');
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: `File "${currentFileToShare}" telah dibagikan kepada ${recipientsString}`,
+                    icon: 'success'
+                }).then(() => {
+                    closeShareModal();
+                    fetchAudios();
+                });
+
+            } catch (error) {
+                console.error('Error sharing file:', error);
+                Swal.fire('Error', 'Gagal membagikan file', 'error');
+            }
+        }
+
+        // Inisialisasi event listeners untuk modal berbagi
+        function initializeShareModal() {
+            const closeShareBtn = document.querySelector('.close-share-modal');
+            const cancelShareBtn = document.querySelector('.cancel-share');
+            const shareBtn = document.querySelector('.share-button');
+            const searchInput = document.querySelector('.search-users');
+            const clearSearch = document.querySelector('.clear-search');
+
+            if (closeShareBtn) closeShareBtn.addEventListener('click', closeShareModal);
+            if (cancelShareBtn) cancelShareBtn.addEventListener('click', closeShareModal);
+            if (shareBtn) shareBtn.addEventListener('click', handleShare);
+
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    const term = searchInput.value.toLowerCase();
+                    if (clearSearch) clearSearch.classList.toggle('hidden', term.length === 0);
+                    filteredUsers = users.filter(user =>
+                        user.name.toLowerCase().includes(term) ||
+                        user.email.toLowerCase().includes(term)
+                    );
+                    renderUsersList();
+                });
+            }
+
+            if (clearSearch) {
+                clearSearch.addEventListener('click', () => {
+                    if (searchInput) searchInput.value = '';
+                    clearSearch.classList.add('hidden');
+                    filteredUsers = [...users];
+                    renderUsersList();
+                });
+            }
+
+            const shareModal = document.getElementById('shareModal');
+            if (shareModal) {
+                shareModal.addEventListener('click', (e) => {
+                    if (e.target === shareModal) closeShareModal();
+                });
+            }
+        }
+
+        // Ambil data users untuk fitur berbagi
+        async function fetchUsers() {
+            try {
+                const response = await fetch('/users');
+                if (!response.ok) throw new Error('Failed to fetch users');
+                users = await response.json();
+                filteredUsers = [...users];
+                renderUsersList();
+            } catch (error) {
+                console.error('Error memuat users:', error);
+                // Fallback data jika API tidak tersedia
+                users = [
+                    { id: 1, name: 'Ahmad Wijaya', email: 'ahmad@example.com', avatar: 'AW', color: 'bg-blue-500' },
+                    { id: 2, name: 'Sari Indah', email: 'sari@example.com', avatar: 'SI', color: 'bg-pink-500' },
+                    { id: 3, name: 'Budi Santoso', email: 'budi@example.com', avatar: 'BS', color: 'bg-green-500' },
+                    { id: 4, name: 'Dewi Lestari', email: 'dewi@example.com', avatar: 'DL', color: 'bg-purple-500' }
+                ];
+                filteredUsers = [...users];
+                renderUsersList();
+            }
+        }
+
+        // ==================== FUNGSI UTAMA AUDIO ====================
+
         // Ambil data file dari backend Laravel dan filter hanya audio
         async function fetchAudios() {
             try {
@@ -881,15 +1372,14 @@
                     return audioTypes.includes(ext);
                 });
 
-                // Set filteredAudios sama dengan audios awal
+                // Set allAudios dan filteredAudios sama dengan audios awal
+                allAudios = [...audios];
                 filteredAudios = [...audios];
 
                 console.log('🎵 Filtered audio files:', audios.length);
 
                 updateAudioStats();
-                sortFiles();
-                renderAudios();
-                setupPagination();
+                applySearchAndFilter();
                 hideLoading();
             } catch (error) {
                 console.error('❌ Gagal memuat data audio:', error);
@@ -901,6 +1391,30 @@
                     confirmButtonText: 'OK'
                 });
             }
+        }
+
+        // Apply search and filter - SAMA SEPERTI DI DOKUMEN DAN VIDEO
+        function applySearchAndFilter() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            // Filter dan search pada data asli
+            filteredAudios = allAudios.filter(audio => {
+                const ext = audio.name?.split('.').pop()?.toLowerCase() || '';
+                const name = (audio.name || '').toLowerCase();
+
+                const matchSearch = name.includes(searchValue) || ext.includes(searchValue);
+
+                const matchFilter =
+                    activeFilterType === 'all' ||
+                    ext === activeFilterType;
+
+                return matchSearch && matchFilter;
+            });
+
+            currentPage = 1; // Reset ke halaman pertama
+            sortFiles();
+            renderAudios();
+            setupPagination();
         }
 
         function showLoading() {
@@ -1081,7 +1595,8 @@
                                 onclick="event.stopPropagation()">
                                 <i class="fas fa-download mr-2"></i> Unduh
                             </a>
-                            <a href="javascript:void(0);" onclick="event.preventDefault()"
+                            <a href="javascript:void(0);" 
+                                onclick="event.preventDefault(); openShareModal('${audio.name}')" 
                                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 <i class="fas fa-share-alt mr-2"></i> Bagikan
                             </a>
@@ -1201,6 +1716,10 @@
                            onclick="event.stopPropagation()">
                             <i class="fas fa-download"></i>
                         </a>
+                        <button onclick="event.preventDefault(); openShareModal('${audio.name}')"
+                                class="text-indigo-600 hover:text-indigo-900 p-2 rounded-lg hover:bg-indigo-50 transition-colors">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
                         <button onclick="event.preventDefault(); confirmDelete('${encodeURIComponent(audio.name)}')"
                                 class="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors">
                             <i class="fas fa-trash-alt"></i>
@@ -1289,7 +1808,7 @@
             return result.trim();
         }
 
-        // Setup pagination - VERSI DIPERBAIKI
+        // Setup pagination
         function setupPagination() {
             const pageNumbers = document.getElementById('pageNumbers');
             const prevPage = document.getElementById('prevPage');
@@ -1563,6 +2082,10 @@
                             class="bg-green-500 hover:bg-green-600 text-white py-2.5 px-5 rounded-xl font-medium transition-colors duration-200 flex items-center justify-center">
                             <i class="fas fa-play mr-2"></i> Putar Audio
                         </button>
+                        <button onclick="event.preventDefault(); openShareModal('${audio.name}')"
+                            class="bg-blue-500 hover:bg-blue-600 text-white py-2.5 px-5 rounded-xl font-medium transition-colors duration-200 flex items-center justify-center">
+                            <i class="fas fa-share-alt mr-2"></i> Bagikan
+                        </button>
                         <a 
                             href="/storage/uploads/${encodeURIComponent(audio.name)}"
                             download
@@ -1577,45 +2100,27 @@
             modal.classList.remove('hidden');
         }
 
-        // Close modal
-        document.querySelectorAll('.closeModal').forEach(btn => {
-            btn.addEventListener('click', function () {
-                document.getElementById('fileModal').classList.add('hidden');
-            });
-        });
+        // Close file modal
+        function closeFileModal() {
+            const modal = document.getElementById('fileModal');
+            modal.classList.add('hidden');
+        }
 
-
-        // Filter audios by type - VERSI DIPERBAIKI
+        // Filter audios by type - SAMA PERSIS SEPERTI DI DOKUMEN DAN VIDEO
         function filterAudios(type) {
             activeFilterType = type;
 
-            if (type === 'all') {
-                filteredAudios = [...audios];
-            } else {
-                filteredAudios = audios.filter(audio => {
-                    const ext = audio.name?.split('.').pop()?.toLowerCase();
-                    return ext === type;
-                });
-            }
+            // Update UI - aktifkan tombol filter yang dipilih
+            document.querySelectorAll('.filter-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === type);
+            });
 
-            currentPage = 1; // Reset ke halaman 1 saat filter
-            updateAudioStats();
-            sortFiles();
-            renderAudios();
-            setupPagination();
+            document.getElementById('filterDropdown').classList.add('hidden');
 
-            // Update filter button text
-            const filterButton = document.getElementById('filterButton');
-            if (filterButton) {
-                const filterText = type === 'all' ? 'Format Audio' : type.toUpperCase();
-                filterButton.innerHTML = `<i class="fas fa-filter mr-2"></i> ${filterText} <i class="fas fa-chevron-down ml-2 text-gray-500"></i>`;
-            }
+            // Simpan filter yang dipilih
+            localStorage.setItem('selectedAudioType', type);
 
-            // Hide filter dropdown
-            const filterDropdown = document.getElementById('filterDropdown');
-            if (filterDropdown) {
-                filterDropdown.classList.add('hidden');
-            }
+            applySearchAndFilter();
         }
 
         // Toggle view between grid and list
@@ -1679,21 +2184,23 @@
                 });
             });
 
-            // Setup filter dropdown toggle
+            // Setup filter dropdown toggle - SAMA SEPERTI DI DOKUMEN DAN VIDEO
             document.getElementById('filterButton').addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 const filterDropdown = document.getElementById('filterDropdown');
                 filterDropdown.classList.toggle('hidden');
             });
 
-            // Close dropdown when clicking outside
+            // Close dropdown when clicking outside - SAMA SEPERTI DI DOKUMEN DAN VIDEO
             document.addEventListener('click', (e) => {
-                if (!e.target.closest('.relative.inline-block.text-left')) {
-                    const filterDropdown = document.getElementById('filterDropdown');
-                    if (filterDropdown) filterDropdown.classList.add('hidden');
+                // Close filter dropdown
+                const filterDropdown = document.getElementById('filterDropdown');
+                if (filterDropdown && !e.target.closest('.relative.inline-block.text-left')) {
+                    filterDropdown.classList.add('hidden');
                 }
 
-                // Close all dropdowns when clicking outside
+                // Close all file dropdowns
                 if (!e.target.closest('.dropdown')) {
                     document.querySelectorAll('.dropdown-content').forEach(dropdown => {
                         dropdown.classList.add('hidden');
@@ -1714,53 +2221,7 @@
 
                     // Set new timeout untuk debounce
                     searchTimeout = setTimeout(() => {
-                        const searchTerm = e.target.value.toLowerCase();
-
-                        if (searchTerm.length === 0) {
-                            filteredAudios = [...audios];
-                        } else {
-                            filteredAudios = audios.filter(audio =>
-                                audio.name.toLowerCase().includes(searchTerm)
-                            );
-                        }
-
-                        currentPage = 1;
-                        updateAudioStats();
-                        sortFiles();
-                        renderAudios();
-                        setupPagination();
-                    }, 300); // 300ms debounce
-                });
-            }
-
-            // Setup global search dengan debounce
-            const globalSearch = document.getElementById('globalSearch');
-            if (globalSearch) {
-                globalSearch.addEventListener('input', (e) => {
-                    e.preventDefault();
-
-                    // Clear previous timeout
-                    if (searchTimeout) {
-                        clearTimeout(searchTimeout);
-                    }
-
-                    // Set new timeout untuk debounce
-                    searchTimeout = setTimeout(() => {
-                        const searchTerm = e.target.value.toLowerCase();
-
-                        if (searchTerm.length === 0) {
-                            filteredAudios = [...audios];
-                        } else {
-                            filteredAudios = audios.filter(audio =>
-                                audio.name.toLowerCase().includes(searchTerm)
-                            );
-                        }
-
-                        currentPage = 1;
-                        updateAudioStats();
-                        sortFiles();
-                        renderAudios();
-                        setupPagination();
+                        applySearchAndFilter();
                     }, 300); // 300ms debounce
                 });
             }
@@ -1774,10 +2235,75 @@
                 });
             }
 
+            // Initialize modal close functionality
+            initializeModalClose();
+
+            // Initialize share modal
+            initializeShareModal();
+
+            // Load users data for sharing
+            fetchUsers();
+
             // Load audio data
             fetchAudios();
 
+            // Terapkan filter yang disimpan
+            const savedFilter = localStorage.getItem('selectedAudioType');
+            if (savedFilter) {
+                activeFilterType = savedFilter;
+                document.querySelectorAll('.filter-option').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.type === savedFilter);
+                });
+            }
+
             console.log('✅ App initialized successfully');
+        }
+
+        // Initialize modal close functionality
+        function initializeModalClose() {
+            // File detail modal
+            const closeFileModalBtn = document.getElementById('closeFileModal');
+            const fileModal = document.getElementById('fileModal');
+            
+            if (closeFileModalBtn) {
+                closeFileModalBtn.addEventListener('click', closeFileModal);
+            }
+            
+            if (fileModal) {
+                fileModal.addEventListener('click', (e) => {
+                    if (e.target === fileModal) {
+                        closeFileModal();
+                    }
+                });
+            }
+
+            // Settings modal
+            const closeSettingsModalBtn = document.getElementById('closeSettingsModal');
+            const settingsModal = document.getElementById('settingsModal');
+            const cancelSettingsBtn = document.getElementById('cancelSettings');
+            
+            if (closeSettingsModalBtn) {
+                closeSettingsModalBtn.addEventListener('click', () => {
+                    settingsModal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                });
+            }
+            
+            if (cancelSettingsBtn) {
+                cancelSettingsBtn.addEventListener('click', () => {
+                    settingsModal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                });
+            }
+            
+            if (settingsModal) {
+                settingsModal.addEventListener('click', (e) => {
+                    if (e.target === settingsModal) {
+                        settingsModal.classList.add('hidden');
+                        document.body.style.overflow = 'auto';
+                    }
+                });
+            }
         }
 
         // Start the app when DOM is fully loaded
@@ -1795,6 +2321,8 @@
         window.filterAudios = filterAudios;
         window.toggleView = toggleView;
         window.sortBy = sortBy;
+        window.openShareModal = openShareModal;
+        window.closeFileModal = closeFileModal;
 
         document.addEventListener('DOMContentLoaded', function () {
 
@@ -1904,7 +2432,6 @@
             }
 
         });
-
 
         // Password strength system (Tailwind only)
         function checkPasswordStrength(password) {
